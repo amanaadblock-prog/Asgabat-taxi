@@ -8,91 +8,69 @@
     <style>
         body { margin: 0; background: #121212; color: white; font-family: sans-serif; overflow: hidden; }
         #map { height: 50vh; width: 100%; position: absolute; top: 0; z-index: 1; }
-        
-        .ui-container {
-            position: fixed; bottom: 0; width: 100%; height: 50vh;
-            background: #1a1a1a; border-top: 3px solid #f39c12;
-            z-index: 100; padding: 12px; box-sizing: border-box;
-            border-top-left-radius: 20px; border-top-right-radius: 20px;
-        }
-
+        .ui-container { position: fixed; bottom: 0; width: 100%; height: 50vh; background: #1a1a1a; border-top: 3px solid #f39c12; z-index: 100; padding: 12px; box-sizing: border-box; border-top-left-radius: 20px; border-top-right-radius: 20px; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
         .stat-box { background: #252525; padding: 8px; border-radius: 10px; text-align: center; border: 1px solid #333; }
-        .stat-label { font-size: 10px; color: #888; text-transform: uppercase; }
         .stat-value { font-size: 14px; font-weight: bold; color: #f39c12; }
-
         .fuel-wrap { background: #333; height: 22px; border-radius: 12px; position: relative; margin-bottom: 10px; border: 1px solid #444; overflow: hidden; }
         #fuel-bar { height: 100%; width: 100%; background: #27ae60; transition: 0.5s; }
-        #fuel-text { position: absolute; width: 100%; text-align: center; top: 2px; font-size: 12px; font-weight: bold; color: white; }
-
+        #fuel-text { position: absolute; width: 100%; text-align: center; top: 2px; font-size: 12px; font-weight: bold; }
         .btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; margin-bottom: 8px; }
         .btn-refill { background: #f39c12; color: #000; }
         .btn-shop { background: #34495e; color: #fff; }
-
-        #shop-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 2000; padding: 20px; box-sizing: border-box; }
+        #shop-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 2000; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        .car-card { background: #252525; border-radius: 15px; padding: 15px; margin-bottom: 15px; text-align: center; border: 1px solid #444; }
+        .car-img { width: 100%; height: 100px; object-fit: contain; }
     </style>
 </head>
 <body>
-
 <div id="map"></div>
-
 <div class="ui-container">
     <div class="stats-grid">
-        <div class="stat-box"><div class="stat-label">Balans</div><div class="stat-value" id="balance">121.3961</div></div>
-        <div class="stat-box"><div class="stat-label">Sagatlyk</div><div class="stat-value">+0.069</div></div>
+        <div class="stat-box"><div style="font-size:10px;color:#888;">BALANS</div><div class="stat-value" id="balance">121.3961</div></div>
+        <div class="stat-box"><div style="font-size:10px;color:#888;">GIRDEJI</div><div class="stat-value">+1.66</div></div>
     </div>
-
-    <div class="fuel-wrap">
-        <div id="fuel-bar"></div>
-        <div id="fuel-text">Benzin: 100%</div>
-    </div>
-
+    <div class="fuel-wrap"><div id="fuel-bar"></div><div id="fuel-text">Benzin: 100%</div></div>
     <button class="btn btn-refill" onclick="refill()">⛽ ZAPRAWKA ET (1 TMT)</button>
     <button class="btn btn-shop" onclick="toggleShop(true)">🛒 MAGAZIN</button>
 </div>
-
 <div id="shop-view">
     <h2 style="color:#f39c12; text-align:center;">Maşyn Bazary</h2>
-    <button class="btn btn-shop" onclick="toggleShop(false)">YZA GAÝT</button>
+    <div class="car-card">
+        <img src="https://images.info-cars.com/Hyundai-Accent-Sedan-2020_1.jpg" class="car-img">
+        <p>Hyundai Accent (+2.61 TMT/gün)</p>
+        <button class="btn btn-refill">261 TMT</button>
+    </div>
+    <div class="car-card">
+        <img src="https://toyota.com.tm/uploads/models/prius/colors/white.png" class="car-img">
+        <p>Toyota Prius (+4.74 TMT/gün)</p>
+        <button class="btn btn-refill">444 TMT</button>
+    </div>
+    <button class="btn btn-shop" style="background:#e74c3c" onclick="toggleShop(false)">YZA GAÝT</button>
 </div>
-
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     var bounds = L.latLngBounds([37.88, 58.28], [38.02, 58.48]);
     var map = L.map('map', { zoomControl: false, maxBounds: bounds }).setView([37.94, 58.38], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-    var taxiIcon = L.icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png',
-        iconSize: [45, 45], iconAnchor: [22, 22]
-    });
+    var taxiIcon = L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png', iconSize: [45, 45], iconAnchor: [22, 22] });
     var carMarker = L.marker([37.94, 58.38], {icon: taxiIcon}).addTo(map);
-
     let state = { balance: 121.3961, fuel: 100 };
-
     function updateUI() {
         document.getElementById('balance').innerText = state.balance.toFixed(4);
         document.getElementById('fuel-bar').style.width = state.fuel + "%";
         document.getElementById('fuel-text').innerText = "Benzin: " + Math.floor(state.fuel) + "%";
         document.getElementById('fuel-bar').style.background = state.fuel < 20 ? "#e74c3c" : "#27ae60";
     }
-
     setInterval(() => {
         if(state.fuel > 0) {
-            state.balance += 0.0001;
-            state.fuel -= 0.02;
-            
-            let lat = carMarker.getLatLng().lat + (Math.random() - 0.5) * 0.005;
-            let lng = carMarker.getLatLng().lng + (Math.random() - 0.5) * 0.005;
-            
-            if(bounds.contains([lat, lng])) {
-                carMarker.setLatLng([lat, lng]);
-                map.panTo([lat, lng]); 
-            }
+            state.balance += 0.0001; state.fuel -= 0.03;
+            let lat = carMarker.getLatLng().lat + (Math.random() - 0.5) * 0.008;
+            let lng = carMarker.getLatLng().lng + (Math.random() - 0.5) * 0.008;
+            if(bounds.contains([lat, lng])) { carMarker.setLatLng([lat, lng]); map.panTo([lat, lng]); }
             updateUI();
         }
     }, 2000);
-
     function refill() { if(state.balance >= 1) { state.balance -= 1; state.fuel = 100; updateUI(); } }
     function toggleShop(show) { document.getElementById('shop-view').style.display = show ? "block" : "none"; }
     updateUI();
