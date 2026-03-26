@@ -30,7 +30,7 @@
             background: rgba(18, 18, 18, 0.98); z-index: 2000; padding: 20px; box-sizing: border-box; overflow-y: auto;
         }
         .shop-card { background: #252525; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #444; text-align: center; }
-        .car-img { width: 100%; max-width: 180px; height: 110px; object-fit: contain; border-radius: 8px; margin-bottom: 10px; background: #333; }
+        .car-img { width: 100%; max-width: 180px; height: 110px; object-fit: contain; border-radius: 8px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -51,15 +51,13 @@
 <div id="shop-overlay">
     <h2 style="color:#f39c12; text-align:center;">Maşyn Bazary</h2>
     <div class="shop-card">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/2018_Hyundai_Accent_SEL_in_Frost_White_Pearl%2C_front_left.jpg/640px-2018_Hyundai_Accent_SEL_in_Frost_White_Pearl%2C_front_left.jpg" class="car-img">
+        <img src="https://images.info-cars.com/Hyundai-Accent-Sedan-2020_1.jpg" class="car-img">
         <div style="font-weight:bold; color:#f39c12;">Hyundai Accent</div>
-        <div style="font-size:12px; margin: 5px 0;">+2.61 TMT / gün</div>
         <button class="btn btn-refill">261 TMT</button>
     </div>
     <div class="shop-card">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/2016_Toyota_Prius_%28ZVW50L%29_Hybrid_Luxury_sedan_%282016-02-04%29_01.jpg/640px-2016_Toyota_Prius_%28ZVW50L%29_Hybrid_Luxury_sedan_%282016-02-04%29_01.jpg" class="car-img">
+        <img src="https://toyota.com.tm/uploads/models/prius/colors/white.png" class="car-img">
         <div style="font-weight:bold; color:#f39c12;">Toyota Prius</div>
-        <div style="font-size:12px; margin: 5px 0;">+4.74 TMT / gün</div>
         <button class="btn btn-refill">444 TMT</button>
     </div>
     <button class="btn" style="background:#e74c3c" onclick="toggleShop(false)">Yza Gaýt</button>
@@ -67,28 +65,27 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Aşgabat çäkleri (Bounds)
-    var southWest = L.latLng(37.85, 58.20);
-    var northEast = L.latLng(38.02, 58.55);
-    var bounds = L.latLngBounds(southWest, northEast);
-
-    var map = L.map('map', {
-        zoomControl: false,
-        maxBounds: bounds, // Daşyna çykmazlygy üçin
-        maxBoundsViscosity: 1.0,
-        minZoom: 12
+    // 1. KARTA SAZLAMALARY (Dine Asgabat)
+    var bounds = L.latLngBounds([37.85, 58.25], [38.05, 58.55]);
+    var map = L.map('map', { 
+        zoomControl: false, 
+        maxBounds: bounds, 
+        maxBoundsViscosity: 1.0 
     }).setView([37.94, 58.38], 14);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // Marker (Maşyn icony)
-    var taxiIcon = L.icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png', // Hakyky taksi şekili
-        iconSize: [40, 40],
-        iconAnchor: [20, 20]
+    // 2. MASYN MARKER (HOKMAN GORUNJEK USUL)
+    var taxiIcon = L.divIcon({
+        html: '<div style="font-size: 30px;">🚕</div>',
+        className: 'custom-taxi-icon',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
     });
+    
     var carMarker = L.marker([37.94, 58.38], {icon: taxiIcon}).addTo(map);
 
+    // 3. OYUN LOGIKASY
     let state = { balance: 121.3901, fuel: 100 };
 
     function updateUI() {
@@ -98,19 +95,15 @@
 
     setInterval(() => {
         if(state.fuel > 0) {
-            state.balance += 0.00005;
+            state.balance += 0.0001; // Balans hokman kopelyar
             state.fuel -= 0.01;
             
-            // Marker Aşgabadyň içinde hereket edýär
-            let lat = carMarker.getLatLng().lat + (Math.random() - 0.5) * 0.0003;
-            let lng = carMarker.getLatLng().lng + (Math.random() - 0.5) * 0.0003;
+            let lat = carMarker.getLatLng().lat + (Math.random() - 0.5) * 0.0004;
+            let lng = carMarker.getLatLng().lng + (Math.random() - 0.5) * 0.0004;
             
-            // Eger çäkden çyksa, merkeze gaýtar
-            if(!bounds.contains([lat, lng])) {
-                lat = 37.94; lng = 58.38;
+            if(bounds.contains([lat, lng])) {
+                carMarker.setLatLng([lat, lng]);
             }
-            
-            carMarker.setLatLng([lat, lng]);
             updateUI();
         }
     }, 1000);
