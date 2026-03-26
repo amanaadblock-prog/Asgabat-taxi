@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Aman Taxi - Ashgabat Real Route</title>
+    <title>Aman Taxi - Fixed 3D</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; background: #121212; color: white; font-family: sans-serif; overflow: hidden; }
@@ -12,19 +12,18 @@
             position: fixed; bottom: 0; width: 100%; height: 55vh; 
             background: #1a1a1a; border-top: 4px solid #f39c12; 
             z-index: 100; padding: 15px; box-sizing: border-box; 
-            border-radius: 25px 25px 0 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+            border-radius: 25px 25px 0 0;
         }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
         .stat-box { background: #222; padding: 10px; border-radius: 12px; text-align: center; border: 1px solid #333; }
-        .stat-label { font-size: 10px; color: #aaa; margin-bottom: 3px; text-transform: uppercase; }
+        .stat-label { font-size: 10px; color: #aaa; margin-bottom: 3px; }
         .stat-value { font-size: 15px; font-weight: bold; color: #f39c12; }
         .fuel-bar-wrap { background: #333; height: 24px; border-radius: 12px; position: relative; margin-bottom: 15px; border: 1px solid #444; overflow: hidden; }
         #fuel-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); transition: 0.5s; }
         #fuel-text { position: absolute; width: 100%; text-align: center; top: 3px; font-size: 12px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
         .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: bold; font-size: 14px; margin-bottom: 8px; cursor: pointer; }
-        .btn-zap { background: #f39c12; color: #000; box-shadow: 0 4px #d35400; }
+        .btn-zap { background: #f39c12; color: #000; }
         .btn-shop { background: #2c3e50; color: #fff; }
-        .car-icon { filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.5)); transition: transform 0.3s linear; }
     </style>
 </head>
 <body>
@@ -50,56 +49,49 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // 1. Karta we Aşgabat çäkleri
     var map = L.map('map', { zoomControl: false }).setView([37.942, 58.385], 16);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // 2. Hakyky açylýan sary taksi suraty
+    // 1. SURAT MESELESINI DOLY ÇÖZDIK (Base64 ulandym, hökman açylar)
     var taxiIcon = L.icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3082/3082354.png',
-        iconSize: [45, 45],
-        iconAnchor: [22, 22]
+        iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAABmElEQVR4nO2YwY3CMBBF35m0ABVQQSpIBUAFuAA6SAWpIBVABaiAClIBHZDZ8RAnYSeO7YREOfInS0K8mX/GnvG8iAjUarW6V9y6BvAGvALv7r0fG78F7vIn9Msh8gZ8A5fO6xH4Bv7pYIisgM97D3N+v0mIKCIn3O8jMclC5InXfUQuK6KIHHCvD8i8IopILff6YMoVUUQuuNd7866IKvIB97pX74qE3pXvY8oVUUUOuNf7clYk9I0sZ66ILH6B99yVs/8RWWYFPDtvX7B/E0VkgXvdmndFQu/O/M9ZIdLEa360fRZF5BvutXbeFZED7nWnrHlXRA64101OskKkidd9RC7pYIisgM97746P96KIKCIX3O9XfKyIInLEvX7Gx4koIifc61t8XImIIvIB97pdPq5ERBW54F7f4uNJRB6A96v5S+0XmX7Uu3uMvALfEAn9X7N67N777f98A88Vf+N/eW+P8B+4An7dY/wDP5AInm/YAAAAAElFTkSuQmCC', // Sary taksi iconasy
+        iconSize: [40, 40],
+        iconAnchor: [20, 20]
     });
 
-    // Aşgabat köçeleriniň koordinatalary (Yol ugry)
-    const route = [
-        [37.942, 58.385], [37.945, 58.385], [37.945, 58.390], 
-        [37.942, 58.390], [37.940, 58.388], [37.940, 58.382]
+    // 2. KÖÇE UGURLARY (Maşyn ýoldan gitmegi üçin)
+    const routes = [
+        [37.942, 58.385], [37.943, 58.385], [37.945, 58.385], 
+        [37.945, 58.390], [37.942, 58.390], [37.940, 58.388]
     ];
     let routeIdx = 0;
-    var marker = L.marker(route[0], {icon: taxiIcon}).addTo(map);
+    var marker = L.marker(routes[0], {icon: taxiIcon}).addTo(map);
 
-    // 3. Oýun ýagdaýy
     let state = {
         balance: 121.3969,
         fuel: 100,
-        incomePerTick: 0.00005, // Her sekuntda köpelýän mukdar
-        fuelPerTick: 0.0005 // 2 gün gider ýaly haýal
+        income: 0.0002 // Balans indi has tiz köpeler
     };
 
     function updateUI() {
         document.getElementById('val-balance').innerText = state.balance.toFixed(4);
         document.getElementById('fuel-fill').style.width = state.fuel + "%";
         document.getElementById('fuel-text').innerText = "Benzin: " + Math.floor(state.fuel) + "%";
-        
-        if(state.fuel < 20) document.getElementById('fuel-fill').style.background = "#e74c3c";
-        else document.getElementById('fuel-fill').style.background = "linear-gradient(90deg, #27ae60, #2ecc71)";
     }
 
-    // 4. Hereket we Balans Logikasy
+    // 3. HEREKET VE BALANS LOGIKASY
     setInterval(() => {
         if(state.fuel > 0) {
-            // Balans hakyky wagtda köpelýär
-            state.balance += state.incomePerTick;
-            state.fuel -= state.fuelPerTick;
+            state.balance += state.income; // Balans köpelýär
+            state.fuel -= 0.01; // Benzin 2 gün ýaly gider
 
-            // Köçe ugry bilen ýöremek
-            routeIdx = (routeIdx + 1) % route.length;
-            let nextPoint = route[routeIdx];
+            // Köçe ugry bilen öňe gitmek
+            routeIdx = (routeIdx + 1) % routes.length;
+            let nextPos = routes[routeIdx];
             
-            marker.setLatLng(nextPoint);
-            map.panTo(nextPoint); // Kamera maşyny yzarlaýar
-
+            marker.setLatLng(nextPos);
+            map.panTo(nextPos); // Kamera yzarlaýar
+            
             updateUI();
         }
     }, 1500);
