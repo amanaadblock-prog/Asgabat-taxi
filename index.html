@@ -7,20 +7,28 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; background: #121212; color: white; font-family: sans-serif; overflow: hidden; }
-        #map { height: 55vh; width: 100%; position: absolute; top: 0; z-index: 1; }
+        #map { height: 50vh; width: 100%; position: absolute; top: 0; z-index: 1; }
+        
         .ui-container {
-            position: fixed; bottom: 0; width: 100%; height: 45vh;
-            background: #1a1a1a; border-top: 3px solid #f39c12;
-            z-index: 100; padding: 15px; box-sizing: border-box;
-            border-top-left-radius: 20px; border-top-right-radius: 20px;
+            position: fixed; bottom: 0; width: 100%; height: 50vh;
+            background: #1a1a1a; border-top: 4px solid #f39c12;
+            z-index: 100; padding: 20px; box-sizing: border-box;
+            border-top-left-radius: 25px; border-top-right-radius: 25px;
         }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-        .stat-box { background: #252525; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #333; }
-        .stat-label { font-size: 10px; color: #888; text-transform: uppercase; }
-        .stat-value { font-size: 14px; font-weight: bold; color: #f39c12; }
-        .btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; font-size: 14px; }
-        .btn-refill { background: #f39c12; color: #000; }
-        .btn-shop { background: #34495e; color: #fff; margin-top: 10px; }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-box { background: #252525; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #333; }
+        .stat-label { font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-value { font-size: 16px; font-weight: bold; color: #f39c12; }
+
+        /* Benzin barasy we duýduryş */
+        .fuel-container { background: #333; height: 25px; border-radius: 15px; overflow: hidden; position: relative; margin-bottom: 15px; border: 1px solid #444; }
+        #fuel-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); transition: 0.3s; }
+        #fuel-text { position: absolute; width: 100%; text-align: center; top: 2px; font-weight: bold; color: white; text-shadow: 1px 1px 2px black; }
+
+        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.3s; }
+        .btn-refill { background: #f39c12; color: #000; box-shadow: 0 4px 0 #d35400; }
+        .btn-refill:active { transform: translateY(3px); box-shadow: none; }
     </style>
 </head>
 <body>
@@ -30,64 +38,90 @@
 <div class="ui-container">
     <div class="stats-grid">
         <div class="stat-box"><div class="stat-label">Balans (TMT)</div><div class="stat-value" id="balance">121.3901</div></div>
-        <div class="stat-box"><div class="stat-label">Benzin</div><div class="stat-value"><span id="fuel-txt">100</span>%</div></div>
-        <div class="stat-box"><div class="stat-label">Günlük Girdeji</div><div class="stat-value">+1.66</div></div>
-        <div class="stat-box"><div class="stat-label">Sagatlyk</div><div class="stat-value">+0.069</div></div>
+        <div class="stat-box"><div class="stat-label">Girdeji</div><div class="stat-value">+1.66</div></div>
     </div>
-    <button class="btn btn-refill" onclick="refill()">Zaprawka Et (1 TMT)</button>
-    <button class="btn btn-shop" onclick="window.location.reload()">🔄 Täzele</button>
+
+    <div class="fuel-container">
+        <div id="fuel-bar"></div>
+        <div id="fuel-text">Benzin: 100%</div>
+    </div>
+
+    <button class="btn btn-refill" onclick="refill()">🛢️ ZAPRAWKA ET (1 TMT)</button>
+    <p id="msg" style="text-align:center; color:#e74c3c; font-size:12px; margin-top:10px;"></p>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Aşgabat çäkleri (Giňeldildi)
-    var bounds = L.latLngBounds([37.88, 58.28], [38.00, 58.48]);
+    // 1. KARTA ÇÄKLERINI GIŇELTDIK
+    var bounds = L.latLngBounds([37.85, 58.25], [38.05, 58.55]);
     var map = L.map('map', { 
         zoomControl: false, 
         maxBounds: bounds, 
         maxBoundsViscosity: 1.0 
-    }).setView([37.94, 58.38], 14);
+    }).setView([37.94, 58.38], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // HAKYKY MASYN ICONY (PNG - DATA URL)
+    // 2. TAKSI MARKERI
     var taxiIcon = L.icon({
         iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png',
-        iconSize: [45, 45],
-        iconAnchor: [22, 22]
+        iconSize: [50, 50],
+        iconAnchor: [25, 25]
     });
-    
     var carMarker = L.marker([37.94, 58.38], {icon: taxiIcon}).addTo(map);
 
     let state = { balance: 121.3901, fuel: 100 };
 
     function updateUI() {
         document.getElementById('balance').innerText = state.balance.toFixed(4);
-        document.getElementById('fuel-txt').innerText = Math.floor(state.fuel);
+        
+        let fuelBar = document.getElementById('fuel-bar');
+        let fuelTxt = document.getElementById('fuel-text');
+        
+        fuelBar.style.width = state.fuel + "%";
+        fuelTxt.innerText = "Benzin: " + Math.floor(state.fuel) + "%";
+
+        // Benzin azalanda reňki üýtgeýär (Duýduryş)
+        if(state.fuel < 20) {
+            fuelBar.style.background = "#e74c3c"; // Gyzyl
+            document.getElementById('msg').innerText = "Benzin gutarýar! Zaprawka et!";
+        } else {
+            fuelBar.style.background = "linear-gradient(90deg, #27ae60, #2ecc71)"; // Ýaşyl
+            document.getElementById('msg').innerText = "";
+        }
     }
 
-    // Hereket duga (Maşyn indi has uzaklara gidýär)
-    setInterval(() => {
+    // 3. HEREKET LOGIKASY (Uzak aralyklar üçin)
+    function moveCar() {
         if(state.fuel > 0) {
-            state.balance += 0.0001;
-            state.fuel -= 0.01;
-            
-            // Maşynyň her sekuntda süýşýän aralygy ulaldyldy (0.0015)
-            let lat = carMarker.getLatLng().lat + (Math.random() - 0.5) * 0.0015;
-            let lng = carMarker.getLatLng().lng + (Math.random() - 0.5) * 0.0015;
-            
-            // Çäkden çyksa merkeze gaýtarar
-            if(bounds.contains([lat, lng])) {
-                carMarker.setLatLng([lat, lng]);
-            } else {
-                carMarker.setLatLng([37.94, 58.38]);
+            state.balance += 0.0005;
+            state.fuel -= 0.05; // Benzin ýuwaş-ýuwaş azalýar
+
+            // Tötänleýin täze nokat (Has uzak aralyk: 0.015)
+            let newLat = carMarker.getLatLng().lat + (Math.random() - 0.5) * 0.015;
+            let newLng = carMarker.getLatLng().lng + (Math.random() - 0.5) * 0.015;
+
+            if(bounds.contains([newLat, newLng])) {
+                carMarker.setLatLng([newLat, newLng]);
+                map.panTo([newLat, newLng]); // Karta hem maşyn bilen bile süýşýär
             }
-            
+            updateUI();
+        } else {
+            document.getElementById('msg').innerText = "BENZIN GUTARDY! MAŞYN DURDY.";
+        }
+    }
+
+    setInterval(moveCar, 2000); // Her 2 sekuntdan uly böküş edýär
+
+    function refill() {
+        if(state.balance >= 1) {
+            state.balance -= 1;
+            state.fuel = 100;
             updateUI();
         }
-    }, 1000);
+    }
 
-    function refill() { if(state.balance >= 1) { state.balance -= 1; state.fuel = 100; updateUI(); } }
+    updateUI();
 </script>
 </body>
 </html>
