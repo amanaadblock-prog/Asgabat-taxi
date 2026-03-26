@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="tk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aman Taxi - Ashgabat</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root { --yellow: #ffc107; --dark: #212529; }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f4f4; overflow: hidden; }
+        #map { height: 65vh; width: 100%; }
+        
+        .ui-container { 
+            height: 35vh; background: white; position: relative; 
+            border-top-left-radius: 25px; border-top-right-radius: 25px;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.1); padding: 20px; z-index: 1000;
+        }
+
+        .search-bar {
+            background: #f8f9fa; border-radius: 12px; padding: 12px;
+            display: flex; align-items: center; margin-bottom: 15px; border: 1px solid #ddd;
+        }
+
+        .car-selector { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; }
+        .car-card {
+            min-width: 120px; padding: 15px; border: 2px solid #eee;
+            border-radius: 15px; text-align: center; transition: 0.3s;
+        }
+        .car-card.active { border-color: var(--yellow); background: #fffdf5; }
+        .car-card img { width: 60px; height: auto; margin-bottom: 5px; }
+        
+        .order-btn {
+            width: 100%; background: var(--dark); color: white; border: none;
+            padding: 15px; border-radius: 12px; font-size: 18px; font-weight: bold;
+            margin-top: 10px; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="ui-container">
+    <div class="search-bar">
+        <span style="margin-right: 10px;">📍</span>
+        <input type="text" placeholder="Nirä gitmeli? (Berkarar, Aeroport...)" style="border:none; background:none; width:100%; outline:none; font-size:16px;">
+    </div>
+
+    <div class="car-selector">
+        <div class="car-card active">
+            <img src="https://www.pngall.com/wp-content/uploads/2/White-Toyota-Camry-PNG-HD-Image.png" alt="Eco">
+            <div style="font-weight:bold;">Eco</div>
+            <div style="color:green; font-size:14px;">15 TMT</div>
+        </div>
+        <div class="car-card">
+            <img src="https://static.wixstatic.com/media/2cd43b_7c14a42861e64903a48e8947b0a8f890~mv2.png/v1/fill/w_320,h_154,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/Toyota%20Avalon%20Hybrid.png" alt="Comfort">
+            <div style="font-weight:bold;">Comfort</div>
+            <div style="color:green; font-size:14px;">25 TMT</div>
+        </div>
+        <div class="car-card">
+            <img src="https://di-uploads-development.dealereprocess.it/lexus/uploads/2023/11/2024-lexus-es-emi-white.png" alt="Luxury">
+            <div style="font-weight:bold;">Luxury</div>
+            <div style="color:green; font-size:14px;">50 TMT</div>
+        </div>
+    </div>
+
+    <button class="order-btn">Sargyt et</button>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // Aşgabat koordinatalary
+    var map = L.map('map', {zoomControl: false}).setView([37.94, 58.38], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    // Maşyn şekiljigi (Custom Marker)
+    var carIcon = L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png',
+        iconSize: [40, 40]
+    });
+
+    // Aşgabadyň merkezine bir taksi goýalyň
+    L.marker([37.95, 58.39], {icon: carIcon}).addTo(map);
+    
+    // Maşyn saýlawyny üýtgetmek üçin funksiýa
+    const cards = document.querySelectorAll('.car-card');
+    cards.forEach(card => {
+        card.addEventListener('click', () => {
+            cards.forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+        });
+    });
+</script>
+
+</body>
+</html>
+
