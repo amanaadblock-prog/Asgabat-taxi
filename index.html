@@ -2,97 +2,114 @@
 <html lang="tk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aman Taxi - Ashgabat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Aman Taxi Game</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        :root { --yellow: #ffc107; --dark: #212529; }
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f4f4; overflow: hidden; }
-        #map { height: 65vh; width: 100%; }
+        body { margin: 0; background: #121212; color: white; font-family: sans-serif; overflow: hidden; }
+        #map { height: 100vh; width: 100%; position: absolute; z-index: 1; }
         
-        .ui-container { 
-            height: 35vh; background: white; position: relative; 
-            border-top-left-radius: 25px; border-top-right-radius: 25px;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.1); padding: 20px; z-index: 1000;
+        /* Ýokarky Balans Paneli */
+        .top-ui {
+            position: fixed; top: 15px; left: 10px; right: 10px;
+            display: flex; justify-content: space-between; z-index: 100;
+        }
+        .stat-card {
+            background: rgba(20, 20, 20, 0.9); padding: 10px 20px;
+            border-radius: 15px; border: 1px solid #f39c12; color: #f39c12; font-weight: bold;
         }
 
-        .search-bar {
-            background: #f8f9fa; border-radius: 12px; padding: 12px;
-            display: flex; align-items: center; margin-bottom: 15px; border: 1px solid #ddd;
+        /* Oýun Bölümleri (Popup) */
+        .game-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #1a1a1a; z-index: 500; display: none; padding: 20px; box-sizing: border-box;
         }
+        .active-screen { display: block; }
 
-        .car-selector { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; }
-        .car-card {
-            min-width: 120px; padding: 15px; border: 2px solid #eee;
-            border-radius: 15px; text-align: center; transition: 0.3s;
+        /* Maşyn Kartlary */
+        .car-shop-item {
+            background: #252525; border-radius: 15px; padding: 15px;
+            margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;
         }
-        .car-card.active { border-color: var(--yellow); background: #fffdf5; }
-        .car-card img { width: 60px; height: auto; margin-bottom: 5px; }
+        .car-shop-item img { width: 80px; }
         
-        .order-btn {
-            width: 100%; background: var(--dark); color: white; border: none;
-            padding: 15px; border-radius: 12px; font-size: 18px; font-weight: bold;
-            margin-top: 10px; cursor: pointer;
+        /* Aşaky Menýu */
+        .nav-bar {
+            position: fixed; bottom: 0; width: 100%; background: #1a1a1a;
+            display: flex; justify-content: space-around; padding: 15px 0;
+            border-top: 2px solid #f39c12; z-index: 1000;
         }
+        .nav-btn { color: #888; text-align: center; cursor: pointer; }
+        .nav-btn.active { color: #f39c12; }
     </style>
 </head>
 <body>
 
+<div class="top-ui">
+    <div class="stat-card">💰 <span id="balance">121.39</span> TMT</div>
+    <div class="stat-card">🚕 <span id="car-count">2</span> Maşyn</div>
+</div>
+
 <div id="map"></div>
 
-<div class="ui-container">
-    <div class="search-bar">
-        <span style="margin-right: 10px;">📍</span>
-        <input type="text" placeholder="Nirä gitmeli? (Berkarar, Aeroport...)" style="border:none; background:none; width:100%; outline:none; font-size:16px;">
+<div id="shop-screen" class="game-screen">
+    <h2>Maşyn Dükany</h2>
+    <div class="car-shop-item">
+        <img src="https://cdn-icons-png.flaticon.com/512/744/744465.png">
+        <div>
+            <b>Hyundai Accent</b><br>
+            <span style="color: #2ecc71;">+0.11 TMT/sag</span>
+        </div>
+        <button onclick="buyCar(261)" style="background:#f39c12; border:none; padding:10px; border-radius:10px;">261 TMT</button>
     </div>
+    <button onclick="closeScreens()" style="width:100%; padding:15px; margin-top:20px;">Yza gaýt</button>
+</div>
 
-    <div class="car-selector">
-        <div class="car-card active">
-            <img src="https://www.pngall.com/wp-content/uploads/2/White-Toyota-Camry-PNG-HD-Image.png" alt="Eco">
-            <div style="font-weight:bold;">Eco</div>
-            <div style="color:green; font-size:14px;">15 TMT</div>
-        </div>
-        <div class="car-card">
-            <img src="https://static.wixstatic.com/media/2cd43b_7c14a42861e64903a48e8947b0a8f890~mv2.png/v1/fill/w_320,h_154,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/Toyota%20Avalon%20Hybrid.png" alt="Comfort">
-            <div style="font-weight:bold;">Comfort</div>
-            <div style="color:green; font-size:14px;">25 TMT</div>
-        </div>
-        <div class="car-card">
-            <img src="https://di-uploads-development.dealereprocess.it/lexus/uploads/2023/11/2024-lexus-es-emi-white.png" alt="Luxury">
-            <div style="font-weight:bold;">Luxury</div>
-            <div style="color:green; font-size:14px;">50 TMT</div>
-        </div>
-    </div>
-
-    <button class="order-btn">Sargyt et</button>
+<div class="nav-bar">
+    <div class="nav-btn" onclick="openScreen('shop')">🛒<br>Magazin</div>
+    <div class="nav-btn active" onclick="closeScreens()">🚕<br>Şäher</div>
+    <div class="nav-btn">👤<br>Profil</div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Aşgabat koordinatalary
-    var map = L.map('map', {zoomControl: false}).setView([37.94, 58.38], 13);
-
+    // Karta Sazlamalary
+    var map = L.map('map', {zoomControl: false}).setView([37.94, 58.38], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // Maşyn şekiljigi (Custom Marker)
-    var carIcon = L.icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png',
-        iconSize: [40, 40]
-    });
+    // Maşynlary Hereket ETDİRMEK (Logic)
+    var cars = [];
+    function addMovingCar(lat, lng) {
+        var marker = L.marker([lat, lng], {
+            icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png', iconSize: [35, 35] })
+        }).addTo(map);
+        
+        // Ýönekeý hereket animasiýasy
+        setInterval(() => {
+            let newLat = marker.getLatLng().lat + (Math.random() - 0.5) * 0.001;
+            let newLng = marker.getLatLng().lng + (Math.random() - 0.5) * 0.001;
+            marker.setLatLng([newLat, newLng]);
+        }, 3000);
+    }
 
-    // Aşgabadyň merkezine bir taksi goýalyň
-    L.marker([37.95, 58.39], {icon: carIcon}).addTo(map);
-    
-    // Maşyn saýlawyny üýtgetmek üçin funksiýa
-    const cards = document.querySelectorAll('.car-card');
-    cards.forEach(card => {
-        card.addEventListener('click', () => {
-            cards.forEach(c => c.classList.remove('active'));
-            card.classList.add('active');
-        });
-    });
+    // Başlangyç maşynlar
+    addMovingCar(37.94, 58.38);
+    addMovingCar(37.95, 58.39);
+
+    // Menýu Funksiýalary
+    function openScreen(name) {
+        document.getElementById('shop-screen').classList.add('active-screen');
+    }
+    function closeScreens() {
+        document.getElementById('shop-screen').classList.remove('active-screen');
+    }
+
+    // Pul Gazanmak Logikasy (Her 5 sekuntdan pul goşulýar)
+    setInterval(() => {
+        let bal = parseFloat(document.getElementById('balance').innerText);
+        document.getElementById('balance').innerText = (bal + 0.01).toFixed(2);
+    }, 5000);
 </script>
 
 </body>
 </html>
-
