@@ -4,80 +4,150 @@
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Aman Taxi FIX</title>
+    <title>Aman Taxi - Ziguli Full</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; background: #121212; color: white; font-family: sans-serif; overflow: hidden; }
         #map { height: 40vh; width: 100%; position: absolute; top: 0; z-index: 1; }
-        .ui-container { position: fixed; bottom: 0; width: 100%; height: 60vh; background: #1a1a1a; border-top: 4px solid #f39c12; z-index: 100; padding: 15px; box-sizing: border-box; border-radius: 25px 25px 0 0; }
+        
+        /* UI Paneli */
+        .ui-container { 
+            position: fixed; bottom: 0; width: 100%; height: 60vh; 
+            background: #1a1a1a; border-top: 4px solid #f39c12; 
+            z-index: 100; padding: 15px; box-sizing: border-box; 
+            border-radius: 25px 25px 0 0; 
+        }
+
+        /* 4-li Statustika Guty (Aýlyk, Günlük, Sagatlyk) */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .stat-box { background: #222; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #333; }
-        .stat-label { font-size: 10px; color: #aaa; margin-bottom: 5px; }
+        .stat-label { font-size: 10px; color: #aaa; margin-bottom: 5px; text-transform: uppercase; }
         .stat-value { font-size: 16px; font-weight: bold; color: #f39c12; }
+
+        /* Benzin Şkalasy */
         .fuel-bar-wrap { background: #333; height: 26px; border-radius: 13px; position: relative; margin-bottom: 15px; border: 1px solid #444; overflow: hidden; }
         #fuel-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); transition: 0.5s; }
-        #fuel-text { position: absolute; width: 100%; text-align: center; top: 4px; font-size: 13px; font-weight: bold; }
-        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; font-size: 15px; margin-bottom: 10px; cursor: pointer; }
+        #fuel-text { position: absolute; width: 100%; text-align: center; top: 4px; font-size: 13px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
+
+        /* Düwmeler */
+        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; font-size: 15px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
         .btn-zap { background: #f39c12; color: #000; box-shadow: 0 4px #d35400; }
-        .btn-shop { background: #2c3e50; color: #fff; }
-        #shop-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 2000; padding: 20px; box-sizing: border-box; }
+        .btn-zap:active { transform: translateY(2px); box-shadow: 0 2px #d35400; }
+        .btn-shop { background: #2c3e50; color: #fff; border: 1px solid #34495e; }
+
+        /* Magazin Paneli */
+        #shop-panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121212; z-index: 2000; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        .car-card { background: #222; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #444; text-align: center; }
     </style>
 </head>
 <body>
+
 <div id="map"></div>
+
 <div class="ui-container">
     <div class="stats-grid">
-        <div class="stat-box"><div class="stat-label">BALANS (TMT)</div><div class="stat-value" id="b1">121.3962</div></div>
-        <div class="stat-box"><div class="stat-label">AÝLYK</div><div class="stat-value" id="b2">+50.00</div></div>
-        <div class="stat-box"><div class="stat-label">GÜNLÜK</div><div class="stat-value" id="b3">+1.66</div></div>
-        <div class="stat-box"><div class="stat-label">SAGATLYK</div><div class="stat-value" id="b4">+0.069</div></div>
+        <div class="stat-box"><div class="stat-label">Balans (TMT)</div><div class="stat-value" id="val-balance">121.3962</div></div>
+        <div class="stat-box"><div class="stat-label">Aýlyk</div><div class="stat-value">+50.00</div></div>
+        <div class="stat-box"><div class="stat-label">Günlük</div><div class="stat-value">+1.66</div></div>
+        <div class="stat-box"><div class="stat-label">Sagatlyk</div><div class="stat-value">+0.069</div></div>
     </div>
-    <div class="fuel-bar-wrap"><div id="fuel-fill"></div><div id="fuel-text">Benzin: 100%</div></div>
+
+    <div class="fuel-bar-wrap">
+        <div id="fuel-fill"></div>
+        <div id="fuel-text">Benzin: 100%</div>
+    </div>
+
     <button class="btn btn-zap" onclick="refill()">⛽ ZAPRAWKA ET (1 TMT)</button>
-    <button class="btn btn-shop" onclick="toggleShop(true)">🛒 MAGAZIN</button>
+    <button class="btn btn-shop" onclick="toggleShop(true)">🛒 MAGAZIN / BAZAR</button>
 </div>
+
 <div id="shop-panel">
     <h2 style="color:#f39c12; text-align:center;">Maşyn Bazary</h2>
-    <div style="background:#222; padding:15px; border-radius:15px; margin-bottom:15px; border:1px solid #444;">
-        <p>Hyundai Accent (+2.61 TMT/gün)</p>
-        <button class="btn btn-zap">261 TMT SATYNAL</button>
+    <div class="car-card">
+        <p style="font-weight:bold; margin:0;">Toyota Prius</p>
+        <p style="color:#888; font-size:12px;">+4.74 TMT / gün</p>
+        <button class="btn btn-zap" style="margin-top:10px;">444 TMT SATYNAL</button>
+    </div>
+    <div class="car-card">
+        <p style="font-weight:bold; margin:0;">Hyundai Accent</p>
+        <p style="color:#888; font-size:12px;">+2.61 TMT / gün</p>
+        <button class="btn btn-zap" style="margin-top:10px;">261 TMT SATYNAL</button>
     </div>
     <button class="btn btn-shop" style="background:#c0392b" onclick="toggleShop(false)">YZA GAÝT</button>
 </div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+    // 1. Karta Sazlamalary
     var map = L.map('map', { zoomControl: false }).setView([37.94, 58.38], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // MAŞYN SVG - Hiç haçan zaprawka bolup görünmez
-    var carIcon = L.divIcon({
-        html: `<svg width="35" height="35" viewBox="0 0 512 512"><path fill="#f1c40f" d="M438.4 220l-33.1-99.2C394.8 89.1 364.5 64 330 64H182c-34.5 0-64.8 25.1-75.3 56.8L73.6 220C44.7 225.8 24 251.2 24 282v102c0 18.8 15.2 34 34 34h20v26c0 18.8 15.2 34 34 34s34-15.2 34-34v-26h216v26c0 18.8 15.2 34 34 34s34-15.2 34-34v-26h20c18.8 0 34-15.2 34-34V282c0-30.8-20.7-56.2-49.6-62zm-308.3-92.4c6-18.1 23.1-32.4 42.1-32.4h148c19 0 36.1 14.3 42.1 32.4L393.1 224H118.9l11.2-96.4z"/></svg>`,
-        className: '', iconSize: [35, 35], iconAnchor: [17, 17]
+    // 2. HAKYKY ŽIGULI SVG ICON (Hökman görner)
+    var ziguliIcon = L.divIcon({
+        html: `
+        <svg width="50" height="50" viewBox="0 0 512 512" style="filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5));">
+            <path fill="#f1c40f" d="M80 320h352v60H80z"/> 
+            <path fill="#f1c40f" d="M100 220h312l15 100H85z"/>
+            <path fill="#f1c40f" d="M160 140h192l20 80H140z"/>
+            <path fill="#333" d="M175 150h162l15 60H160z"/>
+            <rect x="180" y="330" width="152" height="30" fill="#222" rx="2"/>
+            <rect x="100" y="330" width="40" height="30" fill="white" rx="2"/>
+            <rect x="372" y="330" width="40" height="30" fill="white" rx="2"/>
+            <rect x="216" y="110" width="80" height="25" rx="3" fill="black" />
+            <text x="256" y="128" font-family="monospace" font-size="16" fill="white" font-weight="bold" text-anchor="middle">TAXI</text>
+        </svg>`,
+        className: 'ziguli-marker',
+        iconSize: [50, 50],
+        iconAnchor: [25, 25]
     });
-    var marker = L.marker([37.94, 58.38], {icon: carIcon}).addTo(map);
 
-    let state = { b: 121.3962, f: 100 };
+    var marker = L.marker([37.94, 58.38], {icon: ziguliIcon}).addTo(map);
 
-    function update() {
-        document.getElementById('b1').innerText = state.b.toFixed(4);
-        document.getElementById('fuel-fill').style.width = state.f + "%";
-        document.getElementById('fuel-text').innerText = "Benzin: " + Math.floor(state.f) + "%";
+    // 3. Oyun Logikasy
+    let state = { balance: 121.3962, fuel: 100 };
+
+    function updateUI() {
+        document.getElementById('val-balance').innerText = state.balance.toFixed(4);
+        document.getElementById('fuel-fill').style.width = state.fuel + "%";
+        document.getElementById('fuel-text').innerText = "Benzin: " + Math.floor(state.fuel) + "%";
+        
+        // Benzin azalsa reňk üýtgeýär
+        if(state.fuel < 20) document.getElementById('fuel-fill').style.background = "#e74c3c";
+        else document.getElementById('fuel-fill').style.background = "linear-gradient(90deg, #27ae60, #2ecc71)";
     }
 
+    // 4. Hereket we Girdeji
     setInterval(() => {
-        if(state.f > 0) {
-            state.b += 0.0001; state.f -= 0.05;
-            let lat = marker.getLatLng().lat + (Math.random() - 0.5) * 0.004;
-            let lng = marker.getLatLng().lng + (Math.random() - 0.5) * 0.004;
+        if(state.fuel > 0) {
+            state.balance += 0.0001; 
+            state.fuel -= 0.05; // Benzin sarp edilişi
+
+            // Ýuwaşja süýşmek (Aşgabat içinde)
+            let lat = marker.getLatLng().lat + (Math.random() - 0.5) * 0.003;
+            let lng = marker.getLatLng().lng + (Math.random() - 0.5) * 0.003;
+            
             marker.setLatLng([lat, lng]);
             map.panTo([lat, lng]);
-            update();
+            updateUI();
         }
     }, 2000);
 
-    function refill() { if(state.b >= 1) { state.b -= 1; state.f = 100; update(); } }
-    function toggleShop(s) { document.getElementById('shop-panel').style.display = s ? 'block' : 'none'; }
-    update();
+    // 5. Funksiýalar
+    function refill() { 
+        if(state.balance >= 1) { 
+            state.balance -= 1; 
+            state.fuel = 100; 
+            updateUI(); 
+        } else {
+            alert("Pul ýeterlik däl!");
+        }
+    }
+
+    function toggleShop(show) { 
+        document.getElementById('shop-panel').style.display = show ? 'block' : 'none'; 
+    }
+
+    updateUI();
 </script>
 </body>
 </html>
