@@ -17,23 +17,20 @@
         }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-        .stat-box { background: #252525; padding: 8px; border-radius: 8px; text-align: center; border: 1px solid #333; }
-        .stat-label { font-size: 10px; color: #888; }
+        .stat-box { background: #252525; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #333; }
+        .stat-label { font-size: 10px; color: #888; text-transform: uppercase; }
         .stat-value { font-size: 14px; font-weight: bold; color: #f39c12; }
 
-        .btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; font-size: 14px; }
         .btn-refill { background: #f39c12; color: #000; }
         .btn-shop { background: #34495e; color: #fff; margin-top: 10px; }
 
-        /* Magazin */
         #shop-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(18, 18, 18, 0.98); z-index: 2000; padding: 20px; box-sizing: border-box;
-            overflow-y: auto;
+            background: rgba(18, 18, 18, 0.98); z-index: 2000; padding: 20px; box-sizing: border-box; overflow-y: auto;
         }
         .shop-card { background: #252525; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #444; text-align: center; }
-        /* Maşyn suraty üçin dizaýn */
-        .car-img { width: 100%; max-width: 200px; height: auto; border-radius: 8px; margin-bottom: 10px; }
+        .car-img { width: 100%; max-width: 180px; height: auto; border-radius: 8px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -42,10 +39,10 @@
 
 <div class="ui-container">
     <div class="stats-grid">
-        <div class="stat-box"><div class="stat-label">BALANS</div><div class="stat-value" id="balance">121.39</div></div>
-        <div class="stat-box"><div class="stat-label">GÜNLÜK</div><div class="stat-value">+1.66</div></div>
-        <div class="stat-box"><div class="stat-label">SAGATLYK</div><div class="stat-value">+0.069</div></div>
-        <div class="stat-box"><div class="stat-label">BENZIN</div><div class="stat-value"><span id="fuel-txt">100</span>%</div></div>
+        <div class="stat-box"><div class="stat-label">Balans (TMT)</div><div class="stat-value" id="balance">121.3901</div></div>
+        <div class="stat-box"><div class="stat-label">Aýlyk Girdeji</div><div class="stat-value">+50.00</div></div>
+        <div class="stat-box"><div class="stat-label">Günlük Girdeji</div><div class="stat-value">+1.66</div></div>
+        <div class="stat-box"><div class="stat-label">Benzin</div><div class="stat-value"><span id="fuel-txt">100</span>%</div></div>
     </div>
     <button class="btn btn-refill" onclick="refill()">Zaprawka Et (1 TMT)</button>
     <button class="btn btn-shop" onclick="toggleShop(true)">🛒 Magazin</button>
@@ -53,64 +50,75 @@
 
 <div id="shop-overlay">
     <h2 style="color:#f39c12; text-align:center;">Maşyn Bazary</h2>
-    
     <div class="shop-card">
-        <img src="https://www.hyundai.com/content/dam/hyundai/ww/en/images/find-a-car/accent/highlights/hyundai-accent-highlight-design-pc.jpg" class="car-img">
+        <img src="https://images.info-cars.com/Hyundai-Accent-Sedan-2020_1.jpg" class="car-img">
         <div style="font-weight:bold; color:#f39c12;">Hyundai Accent</div>
         <div style="font-size:12px; margin: 5px 0;">+2.61 TMT / gün</div>
         <button class="btn btn-refill">261 TMT</button>
     </div>
-
     <div class="shop-card">
-        <img src="https://scene7.toyota.eu/is/image/toyotaeurope/Prius-PHEV-Exterior-1:16x9?addressing=true&pad=0,0,0,0&wid=720&fit=fit,1&ts=1686737526978" class="car-img">
+        <img src="https://toyota.com.tm/uploads/models/prius/colors/white.png" class="car-img">
         <div style="font-weight:bold; color:#f39c12;">Toyota Prius</div>
         <div style="font-size:12px; margin: 5px 0;">+4.74 TMT / gün</div>
         <button class="btn btn-refill">444 TMT</button>
     </div>
-
     <button class="btn" style="background:#e74c3c" onclick="toggleShop(false)">Yza Gaýt</button>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Karta sazlamalary
-    var map = L.map('map', { zoomControl: false }).setView([37.94, 58.38], 13);
+    // 1. Karta we Marker (Dine Asgabat)
+    var bounds = L.latLngBounds([37.85, 58.25], [38.05, 58.55]);
+    var map = L.map('map', { zoomControl: false, maxBounds: bounds, maxBoundsViscosity: 1.0 }).setView([37.94, 58.38], 14);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // Taksi markerini goşmak
+    // Marker hakyky icon URL bilen
     var taxiIcon = L.icon({
         iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png',
         iconSize: [40, 40],
         iconAnchor: [20, 20]
     });
-    var car = L.marker([37.94, 58.38], {icon: taxiIcon}).addTo(map);
+    var carMarker = L.marker([37.94, 58.38], {icon: taxiIcon}).addTo(map);
 
-    let state = { balance: 121.39, fuel: 100 };
+    // 2. Oyun Logic (Pul köpelmesi)
+    let state = { 
+        balance: 121.3901, 
+        fuel: 100,
+        incomePerSec: 0.0001 // Sekuntda köpelýän pul
+    };
 
     function updateUI() {
-        document.getElementById('balance').innerText = state.balance.toFixed(2);
+        document.getElementById('balance').innerText = state.balance.toFixed(4);
         document.getElementById('fuel-txt').innerText = Math.floor(state.fuel);
     }
+
+    // Her sekuntda işleýän funksiýa
+    setInterval(() => {
+        if(state.fuel > 0) {
+            state.balance += state.incomePerSec;
+            state.fuel -= 0.02;
+            
+            // Maşyn kofisenti bilen hereket edýär
+            let lat = carMarker.getLatLng().lat + (Math.random() - 0.5) * 0.0003;
+            let lng = carMarker.getLatLng().lng + (Math.random() - 0.5) * 0.0003;
+            carMarker.setLatLng([lat, lng]);
+            
+            updateUI();
+        }
+    }, 1000);
 
     function toggleShop(show) {
         document.getElementById('shop-overlay').style.display = show ? "block" : "none";
     }
 
     function refill() {
-        if(state.balance >= 1) { state.balance -= 1; state.fuel = 100; updateUI(); }
-    }
-
-    // Awtomatik pul we hereket
-    setInterval(() => {
-        if(state.fuel > 0) {
-            state.balance += 0.0001;
-            state.fuel -= 0.02;
-            let lat = car.getLatLng().lat + (Math.random() - 0.5) * 0.0002;
-            let lng = car.getLatLng().lng + (Math.random() - 0.5) * 0.0002;
-            car.setLatLng([lat, lng]);
+        if(state.balance >= 1) {
+            state.balance -= 1;
+            state.fuel = 100;
             updateUI();
         }
-    }, 1000);
+    }
 </script>
 </body>
 </html>
