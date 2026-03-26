@@ -3,118 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Aman Taxi Game</title>
+    <title>Aman Taxi Game - Pro</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { margin: 0; background: #121212; color: white; font-family: sans-serif; overflow: hidden; }
-        #map { height: 60vh; width: 100%; position: absolute; top: 0; z-index: 1; }
+        body { margin: 0; background: #121212; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        #map { height: 100vh; width: 100%; position: absolute; top: 0; z-index: 1; }
         
-        .ui-container {
-            position: fixed; bottom: 0; width: 100%; height: 40vh;
-            background: #1a1a1a; border-top: 3px solid #f39c12;
-            z-index: 100; padding: 15px; box-sizing: border-box;
-            border-top-left-radius: 20px; border-top-right-radius: 20px;
+        /* UI Elementler */
+        .top-stats {
+            position: fixed; top: 10px; width: 100%; display: flex; 
+            justify-content: center; gap: 10px; z-index: 1000;
+        }
+        .stat-badge {
+            background: rgba(26, 26, 26, 0.9); padding: 8px 15px; 
+            border-radius: 20px; border: 1px solid #f39c12; color: #f39c12; font-weight: bold;
         }
 
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-box { background: #252525; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #333; }
-        .stat-label { font-size: 10px; color: #888; text-transform: uppercase; }
-        .stat-value { font-size: 16px; font-weight: bold; color: #f39c12; }
-
-        .fuel-section { margin-top: 10px; }
-        .fuel-bar { width: 100%; background: #333; height: 12px; border-radius: 6px; overflow: hidden; margin-top: 5px; }
-        .fuel-fill { background: linear-gradient(90deg, #f39c12, #2ecc71); height: 100%; width: 100%; transition: 0.5s; }
-
-        .action-btn {
-            width: 100%; background: #f39c12; color: #000; border: none;
-            padding: 12px; border-radius: 10px; font-weight: bold; margin-top: 15px;
+        .game-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #121212; z-index: 2000; display: none; padding: 20px; 
+            box-sizing: border-box; overflow-y: auto; padding-bottom: 80px;
         }
+        .active-screen { display: block; }
+
+        /* Magazin Dizaýny */
+        .shop-card {
+            background: #1a1a1a; border-radius: 15px; padding: 15px;
+            margin-bottom: 15px; border: 1px solid #333; display: flex; align-items: center;
+        }
+        .shop-card img { width: 100px; margin-right: 15px; }
+        .buy-btn {
+            background: #f39c12; color: black; border: none; padding: 8px 15px;
+            border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+
+        /* Navigasiýa */
+        .nav-bar {
+            position: fixed; bottom: 0; width: 100%; background: #1a1a1a;
+            display: flex; justify-content: space-around; padding: 12px 0;
+            border-top: 2px solid #f39c12; z-index: 3000;
+        }
+        .nav-item { color: #888; text-align: center; font-size: 12px; cursor: pointer; }
+        .nav-item.active { color: #f39c12; }
     </style>
 </head>
 <body>
 
+<div class="top-stats">
+    <div class="stat-badge">💰 <span id="balance">121.39</span> TMT</div>
+    <div class="stat-badge">⛽ <span id="fuel-val">100</span>%</div>
+</div>
+
 <div id="map"></div>
 
-<div class="ui-container">
-    <div class="stats-grid">
-        <div class="stat-box">
-            <div class="stat-label">Balans (TMT)</div>
-            <div class="stat-value" id="balance">121.39</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-label">Aýlyk Girdeji</div>
-            <div class="stat-value">+50.00</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-label">Günlük Girdeji</div>
-            <div class="stat-value">+1.66</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-label">Sagatlyk</div>
-            <div class="stat-value">+0.069</div>
+<div id="shop-screen" class="game-screen">
+    <h2 style="color: #f39c12;">Maşyn Dükany</h2>
+    
+    <div class="shop-card">
+        <img src="https://static.tildacdn.com/tild3061-3464-4235-b262-373462613133/hyundai_accent.png" alt="Hyundai">
+        <div style="flex:1;">
+            <b>Hyundai Accent</b><br>
+            <small style="color:#2ecc71;">+1.66 TMT / gün</small><br>
+            <button class="buy-btn" onclick="buyCar(150, 0.069)">150 TMT</button>
         </div>
     </div>
 
-    <div class="fuel-section">
-        <div style="display: flex; justify-content: space-between; font-size: 12px;">
-            <span>⛽ Benzin Rezwerwi</span>
-            <span id="fuel-percent">100%</span>
+    <div class="shop-card">
+        <img src="https://pngimg.com/uploads/toyota/toyota_PNG1952.png" alt="Toyota">
+        <div style="flex:1;">
+            <b>Toyota Prius</b><br>
+            <small style="color:#2ecc71;">+4.74 TMT / gün</small><br>
+            <button class="buy-btn" onclick="buyCar(444, 0.20)">444 TMT</button>
         </div>
-        <div class="fuel-bar"><div id="fuel-level" class="fuel-fill"></div></div>
     </div>
 
-    <button class="action-btn" onclick="refillFuel()">Zaprawka Et (1 TMT)</button>
+    <div class="shop-card">
+        <img src="https://stimg.cardekho.com/sm/6324_v.jpg" alt="VW">
+        <div style="flex:1;">
+            <b>VW Polo</b><br>
+            <small style="color:#2ecc71;">+12.2 TMT / gün</small><br>
+            <button class="buy-btn" onclick="buyCar(1110, 0.51)">1110 TMT</button>
+        </div>
+    </div>
+</div>
+
+<div class="nav-bar">
+    <div class="nav-item" onclick="showScreen('map')">📍<br>Şäher</div>
+    <div class="nav-item" onclick="showScreen('shop')">🛒<br>Magazin</div>
+    <div class="nav-item">👤<br>Profil</div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // 150 manatlyk masyn hasaby
-    let player = {
-        balance: 121.39,
-        hourlyProfit: 0.0694, // 150 / 3 ay / 30 gun / 24 sagat
-        fuel: 100
-    };
+    let player = { balance: 121.39, fuel: 100, income: 0.069 };
 
+    // Karta sazlamalary
     var map = L.map('map', {zoomControl: false}).setView([37.94, 58.38], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    var carIcon = L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png', iconSize: [40, 40] });
-    var car = L.marker([37.94, 58.38], {icon: carIcon}).addTo(map);
+    // Kartadaky Maşyn (Marker)
+    var carIcon = L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png',
+        iconSize: [45, 45]
+    });
+    var carMarker = L.marker([37.94, 58.38], {icon: carIcon}).addTo(map);
 
-    // Esasy oýun sikly (Her 5 sekuntdan pul we benzin hasaplanýar)
+    // Oýun Logikasy (Pul we Hereket)
     setInterval(() => {
-        if (player.fuel > 0) {
+        if(player.fuel > 0) {
             // Pul goşmak
-            player.balance += (player.hourlyProfit / 720); // 5 sekuntlyk girdeji
+            player.balance += (player.income / 360);
+            // Benzin azaltmak
+            player.fuel -= 0.01;
             
-            // Benzin azaltmak (3 günde gutarar ýaly)
-            player.fuel -= (100 / 51840); 
-            
-            // Maşyny azajyk gymyldatmak
-            let lat = car.getLatLng().lat + (Math.random() - 0.5) * 0.001;
-            let lng = car.getLatLng().lng + (Math.random() - 0.5) * 0.001;
-            car.setLatLng([lat, lng]);
+            // Maşyny azajyk gymyldatmak (Realizm üçin)
+            let lat = carMarker.getLatLng().lat + (Math.random() - 0.5) * 0.0005;
+            let lng = carMarker.getLatLng().lng + (Math.random() - 0.5) * 0.0005;
+            carMarker.setLatLng([lat, lng]);
 
             updateUI();
         }
-    }, 5000);
+    }, 1000);
 
     function updateUI() {
-        document.getElementById('balance').innerText = player.balance.toFixed(4);
-        document.getElementById('fuel-percent').innerText = Math.floor(player.fuel) + "%";
-        document.getElementById('fuel-level').style.width = player.fuel + "%";
-        
-        if(player.fuel < 20) document.getElementById('fuel-level').style.background = "red";
+        document.getElementById('balance').innerText = player.balance.toFixed(2);
+        document.getElementById('fuel-val').innerText = Math.floor(player.fuel);
     }
 
-    function refillFuel() {
-        if(player.balance >= 1) {
-            player.balance -= 1;
-            player.fuel = 100;
-            updateUI();
-            alert("Müşderi zaprawka etdi! Puly size geçdi.");
+    function showScreen(name) {
+        let shop = document.getElementById('shop-screen');
+        if(name === 'shop') {
+            shop.classList.add('active-screen');
         } else {
-            alert("Balansda pul ýok!");
+            shop.classList.remove('active-screen');
+        }
+    }
+
+    function buyCar(price, income) {
+        if(player.balance >= price) {
+            player.balance -= price;
+            player.income += income;
+            alert("Täze maşyn alyndy! Girdeji artdy.");
+            showScreen('map');
+        } else {
+            alert("Puluňyz ýetenok!");
         }
     }
 </script>
