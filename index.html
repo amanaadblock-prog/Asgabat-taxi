@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Aman Taxi - Ziguli Full</title>
+    <title>Aman Taxi - Real Ziguli Edition</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; background: #121212; color: white; font-family: sans-serif; overflow: hidden; }
@@ -18,7 +18,7 @@
             border-radius: 25px 25px 0 0; 
         }
 
-        /* 4-li Statustika Guty (Aýlyk, Günlük, Sagatlyk) */
+        /* 4-li Statustika Guty */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .stat-box { background: #222; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #333; }
         .stat-label { font-size: 10px; color: #aaa; margin-bottom: 5px; text-transform: uppercase; }
@@ -32,7 +32,6 @@
         /* Düwmeler */
         .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; font-size: 15px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
         .btn-zap { background: #f39c12; color: #000; box-shadow: 0 4px #d35400; }
-        .btn-zap:active { transform: translateY(2px); box-shadow: 0 2px #d35400; }
         .btn-shop { background: #2c3e50; color: #fff; border: 1px solid #34495e; }
 
         /* Magazin Paneli */
@@ -78,32 +77,30 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // 1. Karta Sazlamalary
     var map = L.map('map', { zoomControl: false }).setView([37.94, 58.38], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // 2. HAKYKY ŽIGULI SVG ICON (Hökman görner)
+    // HAKYKY 3D EFFEKTLI ZIGULI (Vaz 2107)
     var ziguliIcon = L.divIcon({
         html: `
-        <svg width="50" height="50" viewBox="0 0 512 512" style="filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5));">
-            <path fill="#f1c40f" d="M80 320h352v60H80z"/> 
-            <path fill="#f1c40f" d="M100 220h312l15 100H85z"/>
-            <path fill="#f1c40f" d="M160 140h192l20 80H140z"/>
-            <path fill="#333" d="M175 150h162l15 60H160z"/>
-            <rect x="180" y="330" width="152" height="30" fill="#222" rx="2"/>
-            <rect x="100" y="330" width="40" height="30" fill="white" rx="2"/>
-            <rect x="372" y="330" width="40" height="30" fill="white" rx="2"/>
-            <rect x="216" y="110" width="80" height="25" rx="3" fill="black" />
-            <text x="256" y="128" font-family="monospace" font-size="16" fill="white" font-weight="bold" text-anchor="middle">TAXI</text>
+        <svg width="65" height="65" viewBox="0 0 512 512" style="filter: drop-shadow(4px 4px 5px rgba(0,0,0,0.7));">
+            <path fill="#f1c40f" d="M40 300h432l10 80H30z"/>
+            <path fill="#f1c40f" d="M120 160h250l30 140H90z"/>
+            <path fill="#2c3e50" d="M145 175h200l20 120H125z"/>
+            <rect x="175" y="315" width="162" height="35" fill="#111" rx="2" stroke="#bdc3c7" stroke-width="1.5"/>
+            <rect x="75" y="315" width="55" height="35" fill="#f9f9f9" rx="2" stroke="#7f8c8d"/>
+            <rect x="382" y="315" width="55" height="35" fill="#f9f9f9" rx="2" stroke="#7f8c8d"/>
+            <rect x="35" y="365" width="442" height="12" fill="#555" rx="5"/>
+            <rect x="216" y="125" width="80" height="30" rx="5" fill="#111" />
+            <text x="256" y="146" font-family="Arial" font-size="16" fill="#f1c40f" font-weight="bold" text-anchor="middle">TAXI</text>
         </svg>`,
-        className: 'ziguli-marker',
-        iconSize: [50, 50],
-        iconAnchor: [25, 25]
+        className: 'real-ziguli',
+        iconSize: [65, 65],
+        iconAnchor: [32, 32]
     });
 
     var marker = L.marker([37.94, 58.38], {icon: ziguliIcon}).addTo(map);
 
-    // 3. Oyun Logikasy
     let state = { balance: 121.3962, fuel: 100 };
 
     function updateUI() {
@@ -111,42 +108,27 @@
         document.getElementById('fuel-fill').style.width = state.fuel + "%";
         document.getElementById('fuel-text').innerText = "Benzin: " + Math.floor(state.fuel) + "%";
         
-        // Benzin azalsa reňk üýtgeýär
         if(state.fuel < 20) document.getElementById('fuel-fill').style.background = "#e74c3c";
         else document.getElementById('fuel-fill').style.background = "linear-gradient(90deg, #27ae60, #2ecc71)";
     }
 
-    // 4. Hereket we Girdeji
     setInterval(() => {
         if(state.fuel > 0) {
             state.balance += 0.0001; 
-            state.fuel -= 0.05; // Benzin sarp edilişi
-
-            // Ýuwaşja süýşmek (Aşgabat içinde)
+            state.fuel -= 0.04; 
             let lat = marker.getLatLng().lat + (Math.random() - 0.5) * 0.003;
             let lng = marker.getLatLng().lng + (Math.random() - 0.5) * 0.003;
-            
             marker.setLatLng([lat, lng]);
             map.panTo([lat, lng]);
             updateUI();
         }
     }, 2000);
 
-    // 5. Funksiýalar
     function refill() { 
-        if(state.balance >= 1) { 
-            state.balance -= 1; 
-            state.fuel = 100; 
-            updateUI(); 
-        } else {
-            alert("Pul ýeterlik däl!");
-        }
+        if(state.balance >= 1) { state.balance -= 1; state.fuel = 100; updateUI(); } 
     }
 
-    function toggleShop(show) { 
-        document.getElementById('shop-panel').style.display = show ? 'block' : 'none'; 
-    }
-
+    function toggleShop(show) { document.getElementById('shop-panel').style.display = show ? 'block' : 'none'; }
     updateUI();
 </script>
 </body>
