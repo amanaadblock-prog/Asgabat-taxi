@@ -14,28 +14,32 @@
             background: #1a1a1a; border-top: 3px solid #f39c12;
             z-index: 100; padding: 15px; box-sizing: border-box;
             border-top-left-radius: 20px; border-top-right-radius: 20px;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
         }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
         .stat-box { background: #252525; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #333; }
-        .stat-label { font-size: 10px; color: #888; text-transform: uppercase; }
+        .stat-label { font-size: 10px; color: #888; }
         .stat-value { font-size: 14px; font-weight: bold; color: #f39c12; }
 
         .fuel-bar { width: 100%; background: #333; height: 12px; border-radius: 6px; overflow: hidden; margin: 10px 0; }
         .fuel-fill { background: linear-gradient(90deg, #f39c12, #2ecc71); height: 100%; width: 100%; transition: 0.5s; }
 
-        .btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; font-size: 14px; }
+        .btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
         .btn-refill { background: #f39c12; color: #000; }
-        .btn-shop { background: #34495e; color: #fff; margin-top: 10px; }
+        .btn-shop-toggle { background: #34495e; color: #fff; margin-top: 10px; }
 
-        /* Magazin Popup */
+        /* Magazin Overlay */
         #shop-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 1000; padding: 20px; box-sizing: border-box;
+            background: rgba(0,0,0,0.95); z-index: 2000; padding: 20px; box-sizing: border-box;
+            overflow-y: auto;
         }
-        .shop-card { background: #1a1a1a; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #f39c12; display: flex; align-items: center; }
-        .shop-card img { width: 80px; margin-right: 15px; }
+        .shop-card { 
+            background: #252525; padding: 15px; border-radius: 15px; 
+            margin-bottom: 15px; border: 1px solid #444; text-align: center;
+        }
+        .shop-card img { width: 150px; height: auto; margin-bottom: 10px; border-radius: 5px; }
+        .car-info { font-size: 16px; font-weight: bold; color: #f39c12; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -44,66 +48,66 @@
 
 <div class="ui-container">
     <div class="stats-grid">
-        <div class="stat-box"><div class="stat-label">Balans (TMT)</div><div class="stat-value" id="balance">121.3901</div></div>
-        <div class="stat-box"><div class="stat-label">Aýlyk Girdeji</div><div class="stat-value">+50.00</div></div>
-        <div class="stat-box"><div class="stat-label">Günlük Girdeji</div><div class="stat-value">+1.66</div></div>
-        <div class="stat-box"><div class="stat-label">Sagatlyk</div><div class="stat-value">+0.069</div></div>
+        <div class="stat-box"><div class="stat-label">BALANS</div><div class="stat-value" id="balance">121.39</div></div>
+        <div class="stat-box"><div class="stat-label">AÝLYK</div><div class="stat-value">+50.00</div></div>
+        <div class="stat-box"><div class="stat-label">GÜNLÜK</div><div class="stat-value">+1.66</div></div>
+        <div class="stat-box"><div class="stat-label">SAGATLYK</div><div class="stat-value">+0.069</div></div>
     </div>
     
-    <div style="font-size: 12px;">⛽ Benzin Rezwerwi: <span id="fuel-txt">100</span>%</div>
+    <div style="font-size: 12px;">⛽ Benzin: <span id="fuel-txt">100</span>%</div>
     <div class="fuel-bar"><div id="fuel-level" class="fuel-fill"></div></div>
 
     <button class="btn btn-refill" onclick="refill()">Zaprawka Et (1 TMT)</button>
-    <button class="btn btn-shop" onclick="toggleShop(true)">🛒 Magazin</button>
+    <button class="btn btn-shop-toggle" onclick="toggleShop(true)">🛒 Magazin</button>
 </div>
 
 <div id="shop-overlay">
-    <h2 style="color:#f39c12">Maşyn Bazary</h2>
+    <h2 style="text-align:center; color:#f39c12;">Maşyn Bazary</h2>
+    
     <div class="shop-card">
-        <img src="https://cdn-icons-png.flaticon.com/512/3448/3448636.png">
-        <div><b>Hyundai Accent</b><br><small>+2.61 TMT / gün</small><br><button class="btn btn-refill" style="padding:5px; margin-top:5px;">261 TMT</button></div>
+        <img src="https://images.info-cars.com/Hyundai-Accent-Sedan-2020_1.jpg" alt="Hyundai">
+        <div class="car-info">Hyundai Accent</div>
+        <div style="color:#2ecc71;">+2.61 TMT / gün</div>
+        <button class="btn btn-refill" style="margin-top:10px;">261 TMT</button>
     </div>
+
     <div class="shop-card">
-        <img src="https://cdn-icons-png.flaticon.com/512/3448/3448636.png">
-        <div><b>Toyota Prius</b><br><small>+4.74 TMT / gün</small><br><button class="btn btn-refill" style="padding:5px; margin-top:5px;">444 TMT</button></div>
+        <img src="https://toyota.com.tm/uploads/models/prius/colors/white.png" alt="Toyota">
+        <div class="car-info">Toyota Prius</div>
+        <div style="color:#2ecc71;">+4.74 TMT / gün</div>
+        <button class="btn btn-refill" style="margin-top:10px;">444 TMT</button>
     </div>
+
     <button class="btn" style="background:#e74c3c" onclick="toggleShop(false)">Yza Gaýt</button>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // 1. Karta Çäkleri (Diňe Aşgabat)
-    var ashgabatBounds = L.latLngBounds([37.85, 58.25], [38.05, 58.55]);
+    // 1. Karta Çäkleri we Sazlamalary
+    var bounds = L.latLngBounds([37.85, 58.25], [38.05, 58.55]);
+    var map = L.map('map', { zoomControl: false, maxBounds: bounds, maxBoundsViscosity: 1.0 }).setView([37.94, 58.38], 13);
 
-    var map = L.map('map', {
-        zoomControl: false,
-        maxBounds: ashgabatBounds,
-        maxBoundsViscosity: 1.0
-    }).setView([37.94, 58.38], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        minZoom: 12,
-        maxZoom: 17
-    }).addTo(map);
-
-    // 2. Maşyn Marker
-    var carIcon = L.icon({
+    // 2. Maşyn Markerini Düzediş (Hakyky Maşyn Ikonasy)
+    var taxiIcon = L.icon({
         iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png',
-        iconSize: [45, 45]
+        iconSize: [45, 45],
+        iconAnchor: [22, 22]
     });
-    var car = L.marker([37.94, 58.38], {icon: carIcon}).addTo(map);
+    var car = L.marker([37.942, 58.385], {icon: taxiIcon}).addTo(map);
 
-    // 3. Oýun Logikasy
-    let data = { balance: 121.3901, fuel: 100 };
+    // 3. Oýun Maglumatlary
+    let state = { balance: 121.39, fuel: 100 };
 
     setInterval(() => {
-        if(data.fuel > 0) {
-            data.balance += 0.0001;
-            data.fuel -= 0.05;
+        if(state.fuel > 0) {
+            state.balance += 0.0001;
+            state.fuel -= 0.03;
             
-            // Maşyny kofisenti bilen Aşgabat içinde gymyldatmak
-            let lat = car.getLatLng().lat + (Math.random() - 0.5) * 0.0003;
-            let lng = car.getLatLng().lng + (Math.random() - 0.5) * 0.0003;
+            // Maşyn kartada hereket edýär
+            let lat = car.getLatLng().lat + (Math.random() - 0.5) * 0.0004;
+            let lng = car.getLatLng().lng + (Math.random() - 0.5) * 0.0004;
             car.setLatLng([lat, lng]);
             
             updateUI();
@@ -111,9 +115,9 @@
     }, 1000);
 
     function updateUI() {
-        document.getElementById('balance').innerText = data.balance.toFixed(4);
-        document.getElementById('fuel-txt').innerText = Math.max(0, Math.floor(data.fuel));
-        document.getElementById('fuel-level').style.width = data.fuel + "%";
+        document.getElementById('balance').innerText = state.balance.toFixed(4);
+        document.getElementById('fuel-txt').innerText = Math.max(0, Math.floor(state.fuel));
+        document.getElementById('fuel-level').style.width = state.fuel + "%";
     }
 
     function toggleShop(show) {
@@ -121,9 +125,9 @@
     }
 
     function refill() {
-        if(data.balance >= 1) {
-            data.balance -= 1;
-            data.fuel = 100;
+        if(state.balance >= 1) {
+            state.balance -= 1;
+            state.fuel = 100;
             updateUI();
         }
     }
