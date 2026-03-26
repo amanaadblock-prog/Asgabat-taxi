@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Aman Taxi - Ashgabat Edition</title>
+    <title>Aman Taxi - Ashgabat</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; background: #121212; color: white; font-family: sans-serif; overflow: hidden; }
-        #map { height: 60vh; width: 100%; position: absolute; top: 0; z-index: 1; background: #242424; }
+        #map { height: 60vh; width: 100%; position: absolute; top: 0; z-index: 1; }
         
         .ui-container {
             position: fixed; bottom: 0; width: 100%; height: 40vh;
@@ -17,29 +17,23 @@
         }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-        .stat-box { background: #252525; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid #333; }
+        .stat-box { background: #252525; padding: 8px; border-radius: 8px; text-align: center; border: 1px solid #333; }
         .stat-label { font-size: 10px; color: #888; }
         .stat-value { font-size: 14px; font-weight: bold; color: #f39c12; }
 
-        .fuel-bar { width: 100%; background: #333; height: 12px; border-radius: 6px; overflow: hidden; margin: 10px 0; }
-        .fuel-fill { background: linear-gradient(90deg, #f39c12, #2ecc71); height: 100%; width: 100%; transition: 0.5s; }
-
         .btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
         .btn-refill { background: #f39c12; color: #000; }
-        .btn-shop-toggle { background: #34495e; color: #fff; margin-top: 10px; }
+        .btn-shop { background: #34495e; color: #fff; margin-top: 10px; }
 
-        /* Magazin Overlay */
+        /* Magazin */
         #shop-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 2000; padding: 20px; box-sizing: border-box;
+            background: rgba(18, 18, 18, 0.98); z-index: 2000; padding: 20px; box-sizing: border-box;
             overflow-y: auto;
         }
-        .shop-card { 
-            background: #252525; padding: 15px; border-radius: 15px; 
-            margin-bottom: 15px; border: 1px solid #444; text-align: center;
-        }
-        .shop-card img { width: 150px; height: auto; margin-bottom: 10px; border-radius: 5px; }
-        .car-info { font-size: 16px; font-weight: bold; color: #f39c12; margin-bottom: 5px; }
+        .shop-card { background: #252525; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #444; text-align: center; }
+        /* Maşyn suraty üçin dizaýn */
+        .car-img { width: 100%; max-width: 200px; height: auto; border-radius: 8px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -49,33 +43,29 @@
 <div class="ui-container">
     <div class="stats-grid">
         <div class="stat-box"><div class="stat-label">BALANS</div><div class="stat-value" id="balance">121.39</div></div>
-        <div class="stat-box"><div class="stat-label">AÝLYK</div><div class="stat-value">+50.00</div></div>
         <div class="stat-box"><div class="stat-label">GÜNLÜK</div><div class="stat-value">+1.66</div></div>
         <div class="stat-box"><div class="stat-label">SAGATLYK</div><div class="stat-value">+0.069</div></div>
+        <div class="stat-box"><div class="stat-label">BENZIN</div><div class="stat-value"><span id="fuel-txt">100</span>%</div></div>
     </div>
-    
-    <div style="font-size: 12px;">⛽ Benzin: <span id="fuel-txt">100</span>%</div>
-    <div class="fuel-bar"><div id="fuel-level" class="fuel-fill"></div></div>
-
     <button class="btn btn-refill" onclick="refill()">Zaprawka Et (1 TMT)</button>
-    <button class="btn btn-shop-toggle" onclick="toggleShop(true)">🛒 Magazin</button>
+    <button class="btn btn-shop" onclick="toggleShop(true)">🛒 Magazin</button>
 </div>
 
 <div id="shop-overlay">
-    <h2 style="text-align:center; color:#f39c12;">Maşyn Bazary</h2>
+    <h2 style="color:#f39c12; text-align:center;">Maşyn Bazary</h2>
     
     <div class="shop-card">
-        <img src="https://images.info-cars.com/Hyundai-Accent-Sedan-2020_1.jpg" alt="Hyundai">
-        <div class="car-info">Hyundai Accent</div>
-        <div style="color:#2ecc71;">+2.61 TMT / gün</div>
-        <button class="btn btn-refill" style="margin-top:10px;">261 TMT</button>
+        <img src="https://www.hyundai.com/content/dam/hyundai/ww/en/images/find-a-car/accent/highlights/hyundai-accent-highlight-design-pc.jpg" class="car-img">
+        <div style="font-weight:bold; color:#f39c12;">Hyundai Accent</div>
+        <div style="font-size:12px; margin: 5px 0;">+2.61 TMT / gün</div>
+        <button class="btn btn-refill">261 TMT</button>
     </div>
 
     <div class="shop-card">
-        <img src="https://toyota.com.tm/uploads/models/prius/colors/white.png" alt="Toyota">
-        <div class="car-info">Toyota Prius</div>
-        <div style="color:#2ecc71;">+4.74 TMT / gün</div>
-        <button class="btn btn-refill" style="margin-top:10px;">444 TMT</button>
+        <img src="https://scene7.toyota.eu/is/image/toyotaeurope/Prius-PHEV-Exterior-1:16x9?addressing=true&pad=0,0,0,0&wid=720&fit=fit,1&ts=1686737526978" class="car-img">
+        <div style="font-weight:bold; color:#f39c12;">Toyota Prius</div>
+        <div style="font-size:12px; margin: 5px 0;">+4.74 TMT / gün</div>
+        <button class="btn btn-refill">444 TMT</button>
     </div>
 
     <button class="btn" style="background:#e74c3c" onclick="toggleShop(false)">Yza Gaýt</button>
@@ -83,41 +73,23 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // 1. Karta Çäkleri we Sazlamalary
-    var bounds = L.latLngBounds([37.85, 58.25], [38.05, 58.55]);
-    var map = L.map('map', { zoomControl: false, maxBounds: bounds, maxBoundsViscosity: 1.0 }).setView([37.94, 58.38], 13);
-
+    // Karta sazlamalary
+    var map = L.map('map', { zoomControl: false }).setView([37.94, 58.38], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // 2. Maşyn Markerini Düzediş (Hakyky Maşyn Ikonasy)
+    // Taksi markerini goşmak
     var taxiIcon = L.icon({
         iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png',
-        iconSize: [45, 45],
-        iconAnchor: [22, 22]
+        iconSize: [40, 40],
+        iconAnchor: [20, 20]
     });
-    var car = L.marker([37.942, 58.385], {icon: taxiIcon}).addTo(map);
+    var car = L.marker([37.94, 58.38], {icon: taxiIcon}).addTo(map);
 
-    // 3. Oýun Maglumatlary
     let state = { balance: 121.39, fuel: 100 };
 
-    setInterval(() => {
-        if(state.fuel > 0) {
-            state.balance += 0.0001;
-            state.fuel -= 0.03;
-            
-            // Maşyn kartada hereket edýär
-            let lat = car.getLatLng().lat + (Math.random() - 0.5) * 0.0004;
-            let lng = car.getLatLng().lng + (Math.random() - 0.5) * 0.0004;
-            car.setLatLng([lat, lng]);
-            
-            updateUI();
-        }
-    }, 1000);
-
     function updateUI() {
-        document.getElementById('balance').innerText = state.balance.toFixed(4);
-        document.getElementById('fuel-txt').innerText = Math.max(0, Math.floor(state.fuel));
-        document.getElementById('fuel-level').style.width = state.fuel + "%";
+        document.getElementById('balance').innerText = state.balance.toFixed(2);
+        document.getElementById('fuel-txt').innerText = Math.floor(state.fuel);
     }
 
     function toggleShop(show) {
@@ -125,12 +97,20 @@
     }
 
     function refill() {
-        if(state.balance >= 1) {
-            state.balance -= 1;
-            state.fuel = 100;
+        if(state.balance >= 1) { state.balance -= 1; state.fuel = 100; updateUI(); }
+    }
+
+    // Awtomatik pul we hereket
+    setInterval(() => {
+        if(state.fuel > 0) {
+            state.balance += 0.0001;
+            state.fuel -= 0.02;
+            let lat = car.getLatLng().lat + (Math.random() - 0.5) * 0.0002;
+            let lng = car.getLatLng().lng + (Math.random() - 0.5) * 0.0002;
+            car.setLatLng([lat, lng]);
             updateUI();
         }
-    }
+    }, 1000);
 </script>
 </body>
 </html>
