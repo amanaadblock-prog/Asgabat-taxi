@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Aman Taxi Pro - Original Design</title>
+    <title>Aman Taxi Pro - Save System</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body, html { margin: 0; padding: 0; background: #000; overflow: hidden; height: 100%; font-family: sans-serif; }
         
-        /* ÝOKARKY PANEL (MÜŞTERI) */
+        /* ÝOKARKY PANEL - MÜŞTERI BÖLÜMI KIÇELDILDI */
         .top-ui { position: fixed; top: 10px; width: 100%; z-index: 3000; display: flex; justify-content: space-between; padding: 0 10px; box-sizing: border-box; }
-        .refresh-btn { background: rgba(0,0,0,0.6); color: #fff; padding: 8px; border-radius: 50%; border: 1px solid #f39c12; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-        .m-balance { background: rgba(0,0,0,0.7); color: #f39c12; padding: 5px 12px; border-radius: 15px; border: 1px solid #f39c12; font-weight: bold; font-size: 12px; }
+        .refresh-btn { background: rgba(0,0,0,0.6); color: #fff; padding: 8px; border-radius: 50%; border: 1px solid #f39c12; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .m-balance { background: rgba(0,0,0,0.8); color: #f39c12; padding: 4px 10px; border-radius: 12px; border: 1px solid #f39c12; font-weight: bold; font-size: 11px; }
 
         /* KARTA */
         #map-holder { perspective: 1200px; width: 100%; height: 50vh; background: #000; overflow: hidden; }
         #map { height: 250%; width: 160%; left: -30%; top: -80%; transform: rotateX(55deg); filter: invert(100%) hue-rotate(180deg) brightness(85%); }
 
-        /* AŞAKY PANEL (ORIGINAL) */
+        /* AŞAKY PANEL */
         .ui-panel { 
             position: fixed; bottom: 0; left: 0; right: 0; height: 50vh; 
             background: #121212; border-top: 3px solid #f39c12; 
@@ -29,12 +29,11 @@
         .box { background: #1c1c1c; padding: 10px; border-radius: 12px; text-align: center; border: 1px solid #333; }
         .val { font-size: 14px; font-weight: bold; color: #f39c12; }
 
-        .fuel-wrap { background: #222; height: 20px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #444; overflow: hidden; position: relative; }
+        .fuel-wrap { background: #222; height: 18px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #444; overflow: hidden; position: relative; }
         #fuel-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #d35400, #27ae60); transition: 0.5s; }
-        .fuel-text { position: absolute; width: 100%; text-align: center; font-size: 10px; color: white; top: 2px; font-weight: bold; }
+        .fuel-text { position: absolute; width: 100%; text-align: center; font-size: 9px; color: white; top: 2px; font-weight: bold; }
 
         .btn { width: 100%; padding: 14px; border-radius: 15px; border: none; font-weight: bold; margin-bottom: 8px; font-size: 13px; cursor: pointer; transition: 0.2s; }
-        .btn:active { transform: scale(0.96); }
         .btn-zap { background: #f39c12; color: #000; }
         .btn-shop { background: #34495e; color: white; }
     </style>
@@ -62,7 +61,7 @@
     </div>
 
     <button class="btn btn-zap" onclick="refill()">⛽ ZAPRAWKA ET (0.20 TMT)</button>
-    <button class="btn btn-shop" onclick="alert('Magazin ýakynda açylar!')">🛒 MAGAZIN / BAZAR</button>
+    <button class="btn btn-shop" onclick="resetGame()">♻️ DATA POZ (0-DAN BAŞLA)</button>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -71,48 +70,53 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
     var carIcon = L.divIcon({
-        html: `<div id="car-rotate"><svg width="50" height="25" viewBox="0 0 100 50"><rect x="5" y="10" width="90" height="30" rx="4" fill="#f1c40f" stroke="#000" stroke-width="2"/><path d="M25 10 L35 2 L65 2 L75 10 Z" fill="#333" stroke="#000" stroke-width="2"/></svg></div>`,
-        className: 'custom-icon', iconSize: [50, 25], iconAnchor: [25, 12]
+        html: `<div id="car-rotate"><svg width="40" height="20" viewBox="0 0 100 50"><rect x="5" y="10" width="90" height="30" rx="4" fill="#f1c40f" stroke="#000" stroke-width="2"/><path d="M25 10 L35 2 L65 2 L75 10 Z" fill="#333" stroke="#000" stroke-width="2"/></svg></div>`,
+        className: 'custom-icon', iconSize: [40, 20], iconAnchor: [20, 10]
     });
 
     var marker = L.marker([37.942, 58.385], { icon: carIcon }).addTo(map);
 
-    // SAVE SYSTEM (React kodundaky ýaly güýçli)
-    let totalHourly = 0.069;
-    let savedBal = parseFloat(localStorage.getItem('aman_taxi_bal')) || 0;
-    let savedFuel = parseFloat(localStorage.getItem('aman_taxi_fuel')) || 100;
-    let lastTime = localStorage.getItem('aman_taxi_time') || Date.now();
+    // SAVE SYSTEM LOGIKASY
+    let hourlyIncome = 0.069;
+    let savedBal = parseFloat(localStorage.getItem('taxi_bal')) || 0;
+    let savedMBal = parseFloat(localStorage.getItem('taxi_m_bal')) || 0; // Müşteri balansy ýatda saklanýar
+    let savedFuel = parseFloat(localStorage.getItem('taxi_fuel')) || 100;
+    let lastTime = localStorage.getItem('taxi_time') || Date.now();
 
-    // OFFLINE INCOME
-    let diff = (Date.now() - lastTime) / 1000;
-    let earnings = (diff / 3600) * totalHourly;
+    // OFF-LINE GAZANJY HASAPLA (Müşteri hem gazanýar)
+    let diffSec = (Date.now() - lastTime) / 1000;
+    let offlineIncome = (diffSec / 3600) * hourlyIncome;
 
     let state = {
-        bal: savedBal + earnings,
+        bal: savedBal + offlineIncome,
+        mBal: savedMBal + (offlineIncome / 2), // Müşteri birneme azrak ýygnasyn
         fuel: savedFuel
     };
 
     setInterval(() => {
         if(state.fuel > 0) {
-            // Hereket
+            // Maşyn Hereketi
             let lat = 37.942 + (Math.random() - 0.5) * 0.002;
             let lng = 58.385 + (Math.random() - 0.5) * 0.002;
             marker.setLatLng([lat, lng]);
             map.panTo([lat, lng], { animate: true });
 
-            // Balans we Benzin
-            state.bal += (totalHourly / 3600);
+            // Balanslary köpeltmek
+            state.bal += (hourlyIncome / 3600);
+            state.mBal += (hourlyIncome / 7200); 
             state.fuel -= 0.05;
 
-            // UI Update
+            // UI Täzele
             document.getElementById('balance').innerText = state.bal.toFixed(4);
+            document.getElementById('m-val').innerText = state.mBal.toFixed(2);
             document.getElementById('fuel-fill').style.width = state.fuel + "%";
             document.getElementById('fuel-num').innerText = Math.max(0, state.fuel.toFixed(0));
 
-            // Save
-            localStorage.setItem('aman_taxi_bal', state.bal);
-            localStorage.setItem('aman_taxi_fuel', state.fuel);
-            localStorage.setItem('aman_taxi_time', Date.now());
+            // Ýatda saklamak
+            localStorage.setItem('taxi_bal', state.bal);
+            localStorage.setItem('taxi_m_bal', state.mBal);
+            localStorage.setItem('taxi_fuel', state.fuel);
+            localStorage.setItem('taxi_time', Date.now());
         }
     }, 1000);
 
@@ -120,10 +124,15 @@
         if(state.bal >= 0.20) {
             state.bal -= 0.20;
             state.fuel = 100;
-            localStorage.setItem('aman_taxi_bal', state.bal);
-            localStorage.setItem('aman_taxi_fuel', 100);
-        } else {
-            alert("Pul ýetenok!");
+            localStorage.setItem('taxi_bal', state.bal);
+            localStorage.setItem('taxi_fuel', 100);
+        } else { alert("Balansyňyzda ýeterlik pul ýok!"); }
+    }
+
+    function resetGame() {
+        if(confirm("Hemme maglumatlary pozup, 0-dan başlamalymy?")) {
+            localStorage.clear();
+            location.reload();
         }
     }
 </script>
