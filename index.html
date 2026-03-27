@@ -3,33 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Aman Taxi - Final Fix</title>
+    <title>Aman Taxi - Real 07 3D</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        /* EKRANYŇ ÄHLI ÝERINI GARA REŇK BILEN DOLDURMAK */
-        body, html { margin: 0; padding: 0; background: #000; overflow: hidden; height: 100%; }
+        body, html { margin: 0; padding: 0; background: #000; overflow: hidden; height: 100%; font-family: sans-serif; }
         
-        #map-container {
+        /* 1. KARTANYŇ GYRALARYNDAKY BOŞLUKLARY DÜZETMEK */
+        #map-holder {
             perspective: 1200px;
-            width: 100%;
-            height: 60vh; /* Karta birneme uly bolar ýaly */
-            overflow: hidden;
+            width: 100%; height: 50vh;
             background: #000;
+            overflow: hidden;
         }
-
         #map { 
-            /* KARTANYŇ GYRALARYNDAKY BOŞLUKLARY ÝAPMAK ÜÇIN ULY ETMEK */
-            height: 250%; 
-            width: 200%; 
-            left: -50%; 
-            top: -70%;
+            /* Kartany uly edip, boşluklary ýapýarys */
+            height: 250%; width: 150%; 
+            left: -25%; top: -75%;
             transform: rotateX(55deg); 
-            filter: invert(100%) hue-rotate(180deg) brightness(80%) contrast(90%);
+            filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(90%);
         }
 
-        /* UI PANEL - SKRINŞOTYŇA LAÝYK */
+        /* 2. UI PANEL - SENIŇ SKRINŞOTYŇA LAÝYK */
         .ui-panel { 
-            position: fixed; bottom: 0; width: 100%; height: 50vh; 
+            position: fixed; bottom: 0; width: 100%; height: 52vh; 
             background: #121212; border-top: 3px solid #f39c12; 
             z-index: 2000; padding: 20px; box-sizing: border-box; 
             border-radius: 25px 25px 0 0; box-shadow: 0 -15px 40px rgba(0,0,0,0.9);
@@ -39,65 +35,81 @@
         .box { background: #1c1c1c; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #333; }
         .val { font-size: 16px; font-weight: bold; color: #f39c12; }
 
-        /* BENZIN BAR - REŇKLI GEÇIŞ BILEN */
         .fuel-wrap { background: #222; height: 22px; border-radius: 11px; margin-bottom: 15px; border: 1px solid #444; overflow: hidden; }
         #fuel-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #d35400, #27ae60); transition: 0.5s; }
 
-        .btn { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; margin-bottom: 8px; font-size: 14px; color: #000; }
+        .btn { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; margin-bottom: 8px; font-size: 14px; }
+        
+        /* ŽIGULI DURAÝYŞY (MARKER) */
+        .car-07-marker { transition: transform 0.4s linear; }
     </style>
 </head>
 <body>
 
-<div id="map-container">
+<div id="map-holder">
     <div id="map"></div>
 </div>
 
 <div class="ui-panel">
     <div class="stats">
-        <div class="box"><div style="color:#888;font-size:10px">BALANS (TMT)</div><div id="balance" class="val">121.4027</div></div>
+        <div class="box"><div style="color:#888;font-size:10px">BALANS (TMT)</div><div id="balance" class="val">120.6037</div></div>
         <div class="box"><div style="color:#888;font-size:10px">AÝLYK</div><div class="val">+50.00</div></div>
         <div class="box"><div style="color:#888;font-size:10px">GÜNLÜK</div><div class="val">+1.66</div></div>
         <div class="box"><div style="color:#888;font-size:10px">SAGATLYK</div><div class="val">+0.069</div></div>
     </div>
     <div class="fuel-wrap"><div id="fuel-fill"></div></div>
-    <button class="btn" style="background: #f39c12;" onclick="refill()">⛽ ZAPRAWKA ET (0.20 TMT)</button>
+    <button class="btn" style="background: #f39c12; color: #000;" onclick="refill()">⛽ ZAPRAWKA ET (0.20 TMT)</button>
     <button class="btn" style="background: #34495e; color: white;">🛒 MAGAZIN / BAZAR</button>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Karta sazlamalary
     var map = L.map('map', { zoomControl: false, attributionControl: false }).setView([37.942, 58.385], 17);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // ŽIGULI 07 (Internet gerek däl, SVG bilen çyzylan)
+    // ŽIGULI 07 SVG - HIÇ WAGT ÝITMEÝÄN MAŞYN (KODYŇ IÇINDE)
     var carIcon = L.divIcon({
-        html: `<div id="car-rotate" style="transition: transform 0.5s linear;">
-            <div style="position:absolute; top:20px; left:5px; width:40px; height:15px; background:rgba(0,0,0,0.5); filter:blur(4px); border-radius:50%; z-index:-1;"></div>
-            <svg width="50" height="30" viewBox="0 0 100 60">
-                <rect x="10" y="10" width="80" height="40" rx="4" fill="#f1c40f" stroke="#000" stroke-width="2"/>
-                <rect x="25" y="15" width="50" height="30" rx="2" fill="#333"/>
-                <rect x="20" y="12" width="10" height="4" fill="white" opacity="0.7"/>
+        html: `
+        <div id="car-rotate" class="car-07-marker">
+            <div style="position: absolute; top: 20px; left: 5px; width: 45px; height: 15px; background: rgba(0,0,0,0.5); filter: blur(4px); border-radius: 50%; z-index: -1;"></div>
+            <svg width="55" height="30" viewBox="0 0 100 50">
+                <rect x="5" y="10" width="90" height="30" rx="4" fill="#f1c40f" stroke="#000" stroke-width="2"/>
+                <path d="M25 10 L35 2 L65 2 L75 10 Z" fill="#333" stroke="#000" stroke-width="2"/>
+                <rect x="15" y="12" width="10" height="6" fill="#fff" opacity="0.6"/>
+                <rect x="75" y="12" width="10" height="6" fill="#fff" opacity="0.6"/>
             </svg>
         </div>`,
-        className: 'car-marker',
-        iconSize: [50, 30],
-        iconAnchor: [25, 15]
+        className: 'custom-icon',
+        iconSize: [55, 30],
+        iconAnchor: [27, 15]
     });
 
     var marker = L.marker([37.942, 58.385], { icon: carIcon }).addTo(map);
-    let state = { bal: 121.4027, fuel: 100 };
+    let state = { bal: 120.6037, fuel: 100 };
+
+    function getAngle(p1, p2) {
+        return Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
+    }
+
+    const routes = [[37.9422, 58.3852], [37.9445, 58.3852], [37.9445, 58.3900], [37.9422, 58.3900]];
+    let idx = 0;
 
     setInterval(() => {
         if(state.fuel > 0) {
-            // Maşynyň hereketi we öwrülişi
-            let lat = 37.942 + (Math.random() - 0.5) * 0.002;
-            let lng = 58.385 + (Math.random() - 0.5) * 0.002;
-            marker.setLatLng([lat, lng]);
-            map.panTo([lat, lng], { animate: true });
+            let p1 = routes[idx];
+            idx = (idx + 1) % routes.length;
+            let p2 = routes[idx];
+
+            // Maşyny öwürmek
+            let angle = getAngle(p1, p2);
+            let carEl = document.getElementById('car-rotate');
+            if(carEl) carEl.style.transform = `rotate(${angle}deg)`;
+
+            marker.setLatLng(p2);
+            map.panTo(p2, { animate: true });
 
             state.bal += 0.0001;
-            state.fuel -= 0.2;
+            state.fuel -= 0.3;
             document.getElementById('balance').innerText = state.bal.toFixed(4);
             document.getElementById('fuel-fill').style.width = state.fuel + "%";
         }
@@ -107,3 +119,4 @@
 </script>
 </body>
 </html>
+
