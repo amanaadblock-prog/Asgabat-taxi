@@ -3,59 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Aman Taxi v4.1 Pro</title>
+    <title>Aman Taxi v4.2 Fixed</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body, html { margin: 0; padding: 0; background: #000; overflow: hidden; height: 100%; font-family: sans-serif; }
-        
-        /* ÝOKARKY PANEL */
         .top-ui { position: fixed; top: 10px; width: 100%; z-index: 3000; display: flex; justify-content: space-between; padding: 0 10px; box-sizing: border-box; }
         .refresh-btn { background: rgba(0,0,0,0.8); color: #fff; padding: 8px; border-radius: 50%; border: 1px solid #f39c12; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; }
-
-        /* KARTA */
         #map-holder { perspective: 1000px; width: 100%; height: 50vh; background: #000; overflow: hidden; }
         #map { height: 250%; width: 160%; left: -30%; top: -80%; transform: rotateX(55deg); filter: invert(100%) hue-rotate(180deg) brightness(95%); }
-
-        /* UI PANEL */
-        .ui-panel { position: fixed; bottom: 0; left: 0; right: 0; height: 50vh; background: #111; border-top: 3px solid #f39c12; z-index: 2000; padding: 15px 20px; border-radius: 25px 25px 0 0; display: flex; flex-direction: column; gap: 10px; }
-        .stat-card { background: #1c1c1c; padding: 15px; border-radius: 15px; text-align: center; border: 1px solid #333; }
-        .stat-val { font-size: 22px; font-weight: bold; color: #f39c12; }
-
-        .fuel-wrap { background: #222; height: 20px; border-radius: 10px; border: 1px solid #444; overflow: hidden; position: relative; }
+        .ui-panel { position: fixed; bottom: 0; left: 0; right: 0; height: 50vh; background: #111; border-top: 3px solid #f39c12; z-index: 2000; padding: 15px 20px; border-radius: 25px 25px 0 0; display: flex; flex-direction: column; gap: 15px; }
+        .stat-card { background: #1c1c1c; padding: 25px; border-radius: 15px; text-align: center; border: 1px solid #333; }
+        .stat-title { color: #888; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; }
+        .stat-val { font-size: 28px; font-weight: bold; color: #f39c12; }
+        .fuel-wrap { background: #222; height: 22px; border-radius: 11px; border: 1px solid #444; overflow: hidden; position: relative; }
         #fuel-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #d35400, #27ae60); transition: 0.5s; }
-        .fuel-text { position: absolute; width: 100%; text-align: center; font-size: 10px; color: white; top: 3px; font-weight: bold; }
-
-        .btn { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: bold; font-size: 14px; cursor: pointer; text-transform: uppercase; }
+        .fuel-text { position: absolute; width: 100%; text-align: center; font-size: 11px; color: white; top: 3px; font-weight: bold; }
+        .btn { width: 100%; padding: 16px; border-radius: 15px; border: none; font-weight: bold; font-size: 14px; cursor: pointer; text-transform: uppercase; }
         .btn-zap { background: #f39c12; color: #000; }
         .btn-ad { background: #27ae60; color: #fff; border: 1px solid #2ecc71; }
-
-        /* MODAL (GitHub adresi görünmezligi üçin) */
-        #ad-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #f39c12; border-radius: 50%; width: 40px; height: 40px; animation: spin 2s linear infinite; margin-bottom: 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #ad-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
     </style>
 </head>
 <body>
 
-<div id="ad-modal">
-    <div class="loader"></div>
-    <h3>Reklama ýüklenýär...</h3>
-    <p>Garaşmagyňyz üçin +0.10 TMT berler.</p>
-</div>
+<div id="ad-modal"><h3>Reklama ýüklenýär...</h3><p>Garaşmagyňyz üçin +0.10 TMT berler.</p></div>
 
 <div class="top-ui">
     <div class="refresh-btn" onclick="location.reload()">↻</div>
-    <div style="color:#f39c12; font-weight:bold; font-size:12px; margin-top:8px;">Aman Taxi v4.1</div>
+    <div style="color:#f39c12; font-weight:bold; font-size:12px; margin-top:8px;">Aman Taxi v4.2</div>
 </div>
 
 <div id="map-holder"><div id="map"></div></div>
 
 <div class="ui-panel">
     <div class="stat-card">
-        <div style="color:#888; font-size:10px;">BALANS (TMT)</div>
+        <div class="stat-title">Müşteri Balansy (TMT)</div>
         <div id="balance" class="stat-val">0.0000</div>
-        <div style="color:#27ae60; font-size:11px; margin-top:3px;">+0.069 TMT/sagat</div>
-    </div>
+        </div>
     
     <div class="fuel-wrap">
         <div id="fuel-fill"></div>
@@ -70,17 +54,18 @@
 <script>
     var map = L.map('map', { zoomControl: false, dragging: false, scrollWheelZoom: false }).setView([37.942, 58.385], 18);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
     var carIcon = L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/3202/3202926.png', iconSize: [42, 42], iconAnchor: [21, 21] });
     var marker = L.marker([37.942, 58.385], { icon: carIcon }).addTo(map);
 
+    // ÝATDA SAKLAÝYŞ ULGAMY (FIXED)
     let state = {
-        bal: parseFloat(localStorage.getItem('aman_final_bal')) || 0,
-        fuel: parseFloat(localStorage.getItem('aman_final_fuel')) || 100,
-        lastTime: parseInt(localStorage.getItem('aman_final_time')) || Date.now()
+        // Balans 0-dan başlaýar, ýöne refresh berlende öňki ýerinden dowam edýär
+        bal: parseFloat(localStorage.getItem('aman_taxi_save_bal')) || 0.0000,
+        fuel: parseFloat(localStorage.getItem('aman_taxi_save_fuel')) || 100,
+        lastTime: parseInt(localStorage.getItem('aman_taxi_save_time')) || Date.now()
     };
 
-    // Gazanç we Hereket
+    // Her sekuntda balansy we benzini täzelemek
     let moveCounter = 0;
     setInterval(() => {
         if(state.fuel > 0) {
@@ -90,29 +75,31 @@
             marker.setLatLng([lat, lng]);
             map.panTo([lat, lng], { animate: true, duration: 1.0 });
 
+            // Gazanç: 0.069 TMT / 3600 sekunt
             state.bal += (0.069 / 3600);
             state.fuel -= 0.015;
 
+            // UI täzelemek
             document.getElementById('balance').innerText = state.bal.toFixed(4);
             document.getElementById('fuel-fill').style.width = state.fuel + "%";
             document.getElementById('fuel-num').innerText = Math.round(state.fuel);
 
-            localStorage.setItem('aman_final_bal', state.bal);
-            localStorage.setItem('aman_final_fuel', state.fuel);
-            localStorage.setItem('aman_final_time', Date.now());
+            // KRITIK: Her sekuntda maglumatlary Browser-yň ýadynda saklaýarys
+            localStorage.setItem('aman_taxi_save_bal', state.bal);
+            localStorage.setItem('aman_taxi_save_fuel', state.fuel);
+            localStorage.setItem('aman_taxi_save_time', Date.now());
         }
     }, 1000);
 
-    // REKLAMA LOGIKASY (Professional)
     function startAd() {
         let modal = document.getElementById('ad-modal');
-        modal.style.display = 'flex'; // Modal açylýar (GitHub adresi görünmez)
-        
-        // 5 sekunt garaşdyrýarys (Reklama wagty ýaly)
+        modal.style.display = 'flex';
         setTimeout(() => {
             modal.style.display = 'none';
-            state.bal += 0.10; // +0.10 berýäris, minusa düşmezligiň üçin
-            alert("Gutlaýarys! 0.10 TMT goşuldy.");
+            state.bal += 0.10;
+            // Reklamadan soň hem puly ýatda sakla
+            localStorage.setItem('aman_taxi_save_bal', state.bal);
+            alert("Gutlaýarys! 0.10 TMT balansyňyza goşuldy.");
         }, 5000);
     }
 
@@ -120,6 +107,10 @@
         if(state.bal >= 0.20) {
             state.bal -= 0.20;
             state.fuel = 100;
+            localStorage.setItem('aman_taxi_save_bal', state.bal);
+            localStorage.setItem('aman_taxi_save_fuel', 100);
+        } else {
+            alert("Balansyňyzda ýeterlik pul ýok!");
         }
     }
 </script>
