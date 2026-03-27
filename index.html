@@ -3,54 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Aman Taxi v4.3 Stable</title>
+    <title>Aman Taxi v4.4</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body, html { margin: 0; padding: 0; background: #000; overflow: hidden; height: 100%; font-family: sans-serif; }
         .top-ui { position: fixed; top: 10px; width: 100%; z-index: 3000; display: flex; justify-content: space-between; padding: 0 10px; box-sizing: border-box; }
         .refresh-btn { background: rgba(0,0,0,0.8); color: #fff; padding: 8px; border-radius: 50%; border: 1px solid #f39c12; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; }
-        #map-holder { perspective: 1000px; width: 100%; height: 50vh; background: #000; overflow: hidden; }
+        
+        #map-holder { perspective: 1000px; width: 100%; height: 45vh; background: #000; overflow: hidden; }
         #map { height: 250%; width: 160%; left: -30%; top: -80%; transform: rotateX(55deg); filter: invert(100%) hue-rotate(180deg) brightness(95%); }
-        .ui-panel { position: fixed; bottom: 0; left: 0; right: 0; height: 50vh; background: #111; border-top: 3px solid #f39c12; z-index: 2000; padding: 15px 20px; border-radius: 25px 25px 0 0; display: flex; flex-direction: column; gap: 15px; }
-        .stat-card { background: #1c1c1c; padding: 25px; border-radius: 15px; text-align: center; border: 1px solid #333; }
-        .stat-title { color: #888; font-size: 12px; margin-bottom: 8px; text-transform: uppercase; }
+        
+        .ui-panel { position: fixed; bottom: 0; left: 0; right: 0; height: 55vh; background: #111; border-top: 3px solid #f39c12; z-index: 2000; padding: 15px 20px; border-radius: 25px 25px 0 0; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; }
+        .stat-card { background: #1c1c1c; padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #333; }
         .stat-val { font-size: 28px; font-weight: bold; color: #f39c12; }
-        .fuel-wrap { background: #222; height: 22px; border-radius: 11px; border: 1px solid #444; overflow: hidden; position: relative; }
+        
+        .fuel-wrap { background: #222; height: 20px; border-radius: 10px; border: 1px solid #444; overflow: hidden; position: relative; }
         #fuel-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #d35400, #27ae60); transition: 0.5s; }
-        .fuel-text { position: absolute; width: 100%; text-align: center; font-size: 11px; color: white; top: 3px; font-weight: bold; }
-        .btn { width: 100%; padding: 16px; border-radius: 15px; border: none; font-weight: bold; font-size: 14px; cursor: pointer; text-transform: uppercase; }
+        .fuel-text { position: absolute; width: 100%; text-align: center; font-size: 10px; color: white; top: 3px; font-weight: bold; }
+        
+        .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: bold; font-size: 13px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
         .btn-zap { background: #f39c12; color: #000; }
-        .btn-ad { background: #27ae60; color: #fff; border: 1px solid #2ecc71; }
+        .btn-ad { background: #27ae60; color: #fff; }
+        .btn-withdraw { background: #e74c3c; color: #fff; }
+        .btn:active { transform: scale(0.96); }
 
-        /* ÖZEL PENJIRE (GitHub Adresini Gizlemek Üçin) */
-        #custom-alert { 
-            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #1c1c1c; border: 2px solid #f39c12; color: white; padding: 25px;
-            border-radius: 20px; z-index: 10000; text-align: center; width: 80%; box-shadow: 0 0 50px rgba(0,0,0,1);
-        }
-        #custom-alert button { 
-            background: #f39c12; border: none; padding: 10px 20px; border-radius: 10px;
-            font-weight: bold; margin-top: 15px; cursor: pointer; width: 100%;
-        }
+        /* MODAL STYLE (Custom Alerts & Forms) */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; color: white; text-align: center; }
+        .modal-content { background: #1c1c1c; padding: 20px; border-radius: 20px; border: 1px solid #f39c12; width: 100%; max-width: 400px; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #333; background: #222; color: white; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-<div id="custom-alert">
-    <div id="alert-msg"></div>
-    <button onclick="closeAlert()">OK</button>
+<div id="alert-modal" class="modal">
+    <div class="modal-content">
+        <p id="alert-msg"></p>
+        <button class="btn btn-zap" onclick="closeModal('alert-modal')">OK</button>
+    </div>
+</div>
+
+<div id="withdraw-modal" class="modal">
+    <div class="modal-content">
+        <h3>Puly Çykarmak</h3>
+        <p style="font-size: 12px; color: #888; margin-bottom: 15px;">Minimal çykaryş: 10.00 TMT</p>
+        <form action="https://formsubmit.co/hayitmuradowaman78@gmail.com" method="POST">
+            <input type="hidden" name="_subject" value="Täze Puly Çykaryş Arzasy!">
+            <input type="hidden" name="_captcha" value="false">
+            <input type="text" name="name" placeholder="Adyňyz" required>
+            <input type="tel" name="phone" placeholder="Telefon Belgiňiz" required>
+            <input type="text" name="amount" id="form-amount" readonly style="background: #111;">
+            <textarea name="method" placeholder="Töleg usuly (Karta belgiňiz ýa-da maglumatlar)" required></textarea>
+            <button type="submit" class="btn btn-zap">ARZANY IBER</button>
+            <button type="button" class="btn" style="background:#444; margin-top:8px;" onclick="closeModal('withdraw-modal')">ÝATYR</button>
+        </form>
+    </div>
 </div>
 
 <div class="top-ui">
     <div class="refresh-btn" onclick="location.reload()">↻</div>
-    <div style="color:#f39c12; font-weight:bold; font-size:12px; margin-top:8px;">Aman Taxi v4.3 Stable</div>
+    <div style="color:#f39c12; font-weight:bold; font-size:12px; margin-top:8px;">Aman Taxi v4.4</div>
 </div>
 
 <div id="map-holder"><div id="map"></div></div>
 
 <div class="ui-panel">
     <div class="stat-card">
-        <div class="stat-title">Müşteri Balansy (TMT)</div>
+        <div style="color:#888; font-size:10px; margin-bottom:5px;">BALANS (TMT)</div>
         <div id="balance" class="stat-val">0.0000</div>
     </div>
     
@@ -61,6 +79,7 @@
 
     <button class="btn btn-zap" onclick="refill()">⛽ ZAPRAWKA ET (0.20 TMT)</button>
     <button class="btn btn-ad" onclick="startAd()">📺 REKLAMA GÖR +0.10 TMT</button>
+    <button class="btn btn-withdraw" onclick="openWithdraw()">💸 PULY ÇYKAR</button>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -70,15 +89,19 @@
     var carIcon = L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/3202/3202926.png', iconSize: [42, 42], iconAnchor: [21, 21] });
     var marker = L.marker([37.942, 58.385], { icon: carIcon }).addTo(map);
 
-    // ÝATDA SAKLAÝYŞ - Refresh berlende nollanmazlygy üçin jikme-jik barlag
-    let savedBal = localStorage.getItem('aman_taxi_final_save_bal');
+    // ÝATDA SAKLAÝYŞ (REFRESH ÜÇIN)
     let state = {
-        bal: savedBal !== null ? parseFloat(savedBal) : 0.0000,
-        fuel: parseFloat(localStorage.getItem('aman_taxi_final_save_fuel')) || 100
+        bal: parseFloat(localStorage.getItem('aman_taxi_v4_bal')) || 0.0000,
+        fuel: parseFloat(localStorage.getItem('aman_taxi_v4_fuel')) || 100
     };
 
-    // UI başlangyç täzeleme
-    document.getElementById('balance').innerText = state.bal.toFixed(4);
+    function updateUI() {
+        document.getElementById('balance').innerText = state.bal.toFixed(4);
+        document.getElementById('fuel-fill').style.width = state.fuel + "%";
+        document.getElementById('fuel-num').innerText = Math.round(state.fuel);
+        localStorage.setItem('aman_taxi_v4_bal', state.bal);
+        localStorage.setItem('aman_taxi_v4_fuel', state.fuel);
+    }
 
     let moveCounter = 0;
     setInterval(() => {
@@ -89,50 +112,48 @@
             marker.setLatLng([lat, lng]);
             map.panTo([lat, lng], { animate: true, duration: 1.0 });
 
-            // Gazanç we Ýatda saklamak
             state.bal += (0.069 / 3600);
             state.fuel -= 0.015;
-
-            document.getElementById('balance').innerText = state.bal.toFixed(4);
-            document.getElementById('fuel-fill').style.width = state.fuel + "%";
-            document.getElementById('fuel-num').innerText = Math.round(state.fuel);
-
-            // Her sekuntda Browser-yň ýadynda saklaýarys
-            localStorage.setItem('aman_taxi_final_save_bal', state.bal);
-            localStorage.setItem('aman_taxi_final_save_fuel', state.fuel);
+            updateUI();
         }
     }, 1000);
 
-    function showAlert(msg) {
+    // MODAL FUNKSIÝALARY
+    function showCustomAlert(msg) {
         document.getElementById('alert-msg').innerText = msg;
-        document.getElementById('custom-alert').style.display = 'block';
+        document.getElementById('alert-modal').style.display = 'flex';
     }
-
-    function closeAlert() {
-        document.getElementById('custom-alert').style.display = 'none';
-    }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
     function startAd() {
-        showAlert("Reklama ýüklenýär... Garaşyň.");
+        showCustomAlert("Reklama ýüklenýär... (5 sek garaşyň)");
         setTimeout(() => {
-            closeAlert();
+            closeModal('alert-modal');
             state.bal += 0.10;
-            localStorage.setItem('aman_taxi_final_save_bal', state.bal);
-            showAlert("Gutlaýarys! 0.10 TMT balansyňyza goşuldy.");
-        }, 4000);
+            updateUI();
+            showCustomAlert("Gutlaýarys! 0.10 TMT goşuldy.");
+        }, 5000);
     }
 
     function refill() {
         if(state.bal >= 0.20) {
             state.bal -= 0.20;
             state.fuel = 100;
-            localStorage.setItem('aman_taxi_final_save_bal', state.bal);
-            localStorage.setItem('aman_taxi_final_save_fuel', 100);
-            showAlert("Zaprawka edildi!");
+            updateUI();
+        } else { showCustomAlert("Puluňyz ýetenok!"); }
+    }
+
+    function openWithdraw() {
+        if(state.bal >= 10.0) {
+            document.getElementById('form-amount').value = "Çykarylýan: " + state.bal.toFixed(2) + " TMT";
+            document.getElementById('withdraw-modal').style.display = 'flex';
         } else {
-            showAlert("Puluňyz ýetenok!");
+            showCustomAlert("Puly çykarmak üçin azyndan 10.00 TMT ýygnamaly!");
         }
     }
+    
+    // Sahypa açylanda UI-ny bir gezek täzele
+    updateUI();
 </script>
 </body>
 </html>
