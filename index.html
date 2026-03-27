@@ -3,33 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Aman Taxi v4.4</title>
+    <title>Aman Taxi v4.5 ID System</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body, html { margin: 0; padding: 0; background: #000; overflow: hidden; height: 100%; font-family: sans-serif; }
-        .top-ui { position: fixed; top: 10px; width: 100%; z-index: 3000; display: flex; justify-content: space-between; padding: 0 10px; box-sizing: border-box; }
+        .top-ui { position: fixed; top: 10px; width: 100%; z-index: 3000; display: flex; justify-content: space-between; padding: 0 10px; box-sizing: border-box; width: 100%; }
         .refresh-btn { background: rgba(0,0,0,0.8); color: #fff; padding: 8px; border-radius: 50%; border: 1px solid #f39c12; cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; }
         
         #map-holder { perspective: 1000px; width: 100%; height: 45vh; background: #000; overflow: hidden; }
         #map { height: 250%; width: 160%; left: -30%; top: -80%; transform: rotateX(55deg); filter: invert(100%) hue-rotate(180deg) brightness(95%); }
         
-        .ui-panel { position: fixed; bottom: 0; left: 0; right: 0; height: 55vh; background: #111; border-top: 3px solid #f39c12; z-index: 2000; padding: 15px 20px; border-radius: 25px 25px 0 0; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; }
-        .stat-card { background: #1c1c1c; padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #333; }
-        .stat-val { font-size: 28px; font-weight: bold; color: #f39c12; }
+        .ui-panel { position: fixed; bottom: 0; left: 0; right: 0; height: 55vh; background: #111; border-top: 3px solid #f39c12; z-index: 2000; padding: 15px 20px; border-radius: 25px 25px 0 0; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; }
+        .stat-card { background: #1c1c1c; padding: 15px; border-radius: 15px; text-align: center; border: 1px solid #333; }
+        .stat-val { font-size: 26px; font-weight: bold; color: #f39c12; }
         
         .fuel-wrap { background: #222; height: 20px; border-radius: 10px; border: 1px solid #444; overflow: hidden; position: relative; }
         #fuel-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #d35400, #27ae60); transition: 0.5s; }
         .fuel-text { position: absolute; width: 100%; text-align: center; font-size: 10px; color: white; top: 3px; font-weight: bold; }
         
-        .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: bold; font-size: 13px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: bold; font-size: 13px; cursor: pointer; text-transform: uppercase; }
         .btn-zap { background: #f39c12; color: #000; }
         .btn-ad { background: #27ae60; color: #fff; }
         .btn-withdraw { background: #e74c3c; color: #fff; }
-        .btn:active { transform: scale(0.96); }
 
-        /* MODAL STYLE (Custom Alerts & Forms) */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; color: white; text-align: center; }
-        .modal-content { background: #1c1c1c; padding: 20px; border-radius: 20px; border: 1px solid #f39c12; width: 100%; max-width: 400px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; color: white; }
+        .modal-content { background: #1c1c1c; padding: 20px; border-radius: 20px; border: 1px solid #f39c12; width: 100%; max-width: 400px; text-align: center; }
         input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #333; background: #222; color: white; box-sizing: border-box; }
     </style>
 </head>
@@ -45,14 +43,14 @@
 <div id="withdraw-modal" class="modal">
     <div class="modal-content">
         <h3>Puly Çykarmak</h3>
-        <p style="font-size: 12px; color: #888; margin-bottom: 15px;">Minimal çykaryş: 10.00 TMT</p>
+        <p style="font-size: 11px; color: #888;">Minimal: 10.00 TMT</p>
         <form action="https://formsubmit.co/hayitmuradowaman78@gmail.com" method="POST">
-            <input type="hidden" name="_subject" value="Täze Puly Çykaryş Arzasy!">
             <input type="hidden" name="_captcha" value="false">
-            <input type="text" name="name" placeholder="Adyňyz" required>
-            <input type="tel" name="phone" placeholder="Telefon Belgiňiz" required>
-            <input type="text" name="amount" id="form-amount" readonly style="background: #111;">
-            <textarea name="method" placeholder="Töleg usuly (Karta belgiňiz ýa-da maglumatlar)" required></textarea>
+            <input type="text" name="ID_Belgi" id="form-id" readonly style="background: #111; color: #f39c12; font-weight: bold;">
+            <input type="text" name="Ady" placeholder="Doly Adyňyz" required>
+            <input type="tel" name="Telefon" placeholder="Telefon Belgiňiz" required>
+            <input type="text" name="Jemi_Pul" id="form-amount" readonly style="background: #111;">
+            <textarea name="Toleg_Usuly" placeholder="Karta belgiňiz ýa-da maglumatlar" required></textarea>
             <button type="submit" class="btn btn-zap">ARZANY IBER</button>
             <button type="button" class="btn" style="background:#444; margin-top:8px;" onclick="closeModal('withdraw-modal')">ÝATYR</button>
         </form>
@@ -61,15 +59,15 @@
 
 <div class="top-ui">
     <div class="refresh-btn" onclick="location.reload()">↻</div>
-    <div style="color:#f39c12; font-weight:bold; font-size:12px; margin-top:8px;">Aman Taxi v4.4</div>
+    <div id="user-id-display" style="color:#f39c12; font-weight:bold; font-size:12px; margin-top:8px;">ID: ...</div>
 </div>
 
 <div id="map-holder"><div id="map"></div></div>
 
 <div class="ui-panel">
     <div class="stat-card">
-        <div style="color:#888; font-size:10px; margin-bottom:5px;">BALANS (TMT)</div>
         <div id="balance" class="stat-val">0.0000</div>
+        <div style="color:#888; font-size:10px;">BALANS (TMT)</div>
     </div>
     
     <div class="fuel-wrap">
@@ -77,7 +75,7 @@
         <div class="fuel-text">BENZIN: <span id="fuel-num">100</span>%</div>
     </div>
 
-    <button class="btn btn-zap" onclick="refill()">⛽ ZAPRAWKA ET (0.20 TMT)</button>
+    <button class="btn btn-zap" onclick="refill()">⛽ ZAPRAWKA (0.01 TMT)</button>
     <button class="btn btn-ad" onclick="startAd()">📺 REKLAMA GÖR +0.10 TMT</button>
     <button class="btn btn-withdraw" onclick="openWithdraw()">💸 PULY ÇYKAR</button>
 </div>
@@ -89,70 +87,68 @@
     var carIcon = L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/3202/3202926.png', iconSize: [42, 42], iconAnchor: [21, 21] });
     var marker = L.marker([37.942, 58.385], { icon: carIcon }).addTo(map);
 
-    // ÝATDA SAKLAÝYŞ (REFRESH ÜÇIN)
+    // ID WE ÝATDA SAKLAÝYŞ
+    if(!localStorage.getItem('aman_taxi_user_id')) {
+        let newID = "ID-" + Math.floor(1000 + Math.random() * 9000);
+        localStorage.setItem('aman_taxi_user_id', newID);
+    }
+    let userID = localStorage.getItem('aman_taxi_user_id');
+    document.getElementById('user-id-display').innerText = userID;
+
     let state = {
-        bal: parseFloat(localStorage.getItem('aman_taxi_v4_bal')) || 0.0000,
-        fuel: parseFloat(localStorage.getItem('aman_taxi_v4_fuel')) || 100
+        bal: parseFloat(localStorage.getItem('aman_taxi_v5_bal')) || 0.0000,
+        fuel: parseFloat(localStorage.getItem('aman_taxi_v5_fuel')) || 100
     };
 
     function updateUI() {
         document.getElementById('balance').innerText = state.bal.toFixed(4);
         document.getElementById('fuel-fill').style.width = state.fuel + "%";
         document.getElementById('fuel-num').innerText = Math.round(state.fuel);
-        localStorage.setItem('aman_taxi_v4_bal', state.bal);
-        localStorage.setItem('aman_taxi_v4_fuel', state.fuel);
+        localStorage.setItem('aman_taxi_v5_bal', state.bal);
+        localStorage.setItem('aman_taxi_v5_fuel', state.fuel);
     }
 
-    let moveCounter = 0;
     setInterval(() => {
         if(state.fuel > 0) {
-            moveCounter += 0.03;
-            let lat = 37.942 + (Math.sin(moveCounter) * 0.0008);
-            let lng = 58.385 + (Math.cos(moveCounter) * 0.0008);
-            marker.setLatLng([lat, lng]);
-            map.panTo([lat, lng], { animate: true, duration: 1.0 });
-
             state.bal += (0.069 / 3600);
             state.fuel -= 0.015;
             updateUI();
         }
     }, 1000);
 
-    // MODAL FUNKSIÝALARY
     function showCustomAlert(msg) {
         document.getElementById('alert-msg').innerText = msg;
         document.getElementById('alert-modal').style.display = 'flex';
     }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
+    function refill() {
+        if(state.bal >= 0.01) {
+            state.bal -= 0.01;
+            state.fuel = 100;
+            updateUI();
+        } else { showCustomAlert("Balansda azyndan 0.01 TMT bolmaly!"); }
+    }
+
     function startAd() {
-        showCustomAlert("Reklama ýüklenýär... (5 sek garaşyň)");
+        showCustomAlert("Reklama... (5 sek)");
         setTimeout(() => {
             closeModal('alert-modal');
             state.bal += 0.10;
             updateUI();
-            showCustomAlert("Gutlaýarys! 0.10 TMT goşuldy.");
         }, 5000);
-    }
-
-    function refill() {
-        if(state.bal >= 0.20) {
-            state.bal -= 0.20;
-            state.fuel = 100;
-            updateUI();
-        } else { showCustomAlert("Puluňyz ýetenok!"); }
     }
 
     function openWithdraw() {
         if(state.bal >= 10.0) {
-            document.getElementById('form-amount').value = "Çykarylýan: " + state.bal.toFixed(2) + " TMT";
+            document.getElementById('form-id').value = "Seniň ID-ň: " + userID;
+            document.getElementById('form-amount').value = "Jemi: " + state.bal.toFixed(2) + " TMT";
             document.getElementById('withdraw-modal').style.display = 'flex';
         } else {
             showCustomAlert("Puly çykarmak üçin azyndan 10.00 TMT ýygnamaly!");
         }
     }
     
-    // Sahypa açylanda UI-ny bir gezek täzele
     updateUI();
 </script>
 </body>
