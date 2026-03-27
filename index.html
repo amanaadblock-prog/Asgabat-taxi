@@ -3,56 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Aman Taxi Real 3D</title>
+    <title>Aman Taxi - Žiguli 07 Edition</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { margin: 0; background: #121212; overflow: hidden; font-family: sans-serif; }
+        body { margin: 0; background: #0b0b0b; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
-        /* KARTANY 3D ÝAPGYT GÖRKEZMEK */
+        /* 3D KARTA DIZAÝNY */
         #map-holder {
-            perspective: 800px;
+            perspective: 1000px;
             width: 100%; height: 50vh;
             background: #000;
         }
         #map { 
-            height: 140%; width: 100%; 
-            transform: rotateX(45deg); 
-            margin-top: -20%;
+            height: 150%; width: 100%; 
+            transform: rotateX(45deg); /* Kartany ýapgytlandyrmak */
+            margin-top: -25%;
+            filter: invert(100%) hue-rotate(180deg) brightness(90%) contrast(90%); /* Gije režimi */
         }
 
+        /* UI PANEL */
         .ui-container { 
             position: fixed; bottom: 0; width: 100%; height: 50vh; 
-            background: #1a1a1a; border-top: 4px solid #f39c12; 
+            background: #151515; border-top: 4px solid #f39c12; 
             z-index: 2000; padding: 20px; box-sizing: border-box; 
-            border-radius: 30px 30px 0 0; box-shadow: 0 -20px 40px rgba(0,0,0,0.8);
+            border-radius: 30px 30px 0 0; box-shadow: 0 -20px 50px rgba(0,0,0,0.9);
         }
 
-        /* MAŞYN KONTEÝNERI */
-        .car-container {
-            position: relative;
-            width: 60px; height: 60px;
-            transform-style: preserve-3d;
-        }
-
-        /* HAKYKY ÝALY KÖLEGE (SHADOW) */
-        .car-shadow {
-            position: absolute; top: 20px; left: 10px;
-            width: 40px; height: 20px;
-            background: rgba(0,0,0,0.6);
-            filter: blur(6px); border-radius: 50%;
-            z-index: -1;
-        }
-
-        /* MAŞYNYŇ SURATY */
-        .car-img {
-            width: 55px; 
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-        }
-
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-box { background: #222; padding: 10px; border-radius: 12px; text-align: center; border: 1px solid #333; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .stat-box { background: #1e1e1e; padding: 12px; border-radius: 15px; text-align: center; border: 1px solid #333; }
+        .stat-label { font-size: 10px; color: #888; margin-bottom: 4px; letter-spacing: 1px; }
         .stat-value { font-size: 16px; font-weight: bold; color: #f39c12; }
-        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; margin-bottom: 8px; font-size: 14px; }
+
+        .fuel-bar { background: #222; height: 20px; border-radius: 10px; position: relative; margin-bottom: 20px; overflow: hidden; border: 1px solid #444; }
+        #fuel-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #e67e22, #27ae60); transition: 1s linear; }
+
+        .btn { width: 100%; padding: 16px; border-radius: 15px; border: none; font-weight: bold; margin-bottom: 10px; font-size: 14px; transition: 0.2s; }
+        .btn-zap { background: #f39c12; color: #000; box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3); }
+        .btn-shop { background: #2c3e50; color: white; }
+
+        /* ŽIGULI MARKER */
+        .car-rotate-wrapper { transition: transform 0.4s linear; position: relative; }
+        .car-shadow { 
+            position: absolute; top: 22px; left: 8px; 
+            width: 45px; height: 15px; 
+            background: rgba(0,0,0,0.6); filter: blur(5px); 
+            border-radius: 50%; z-index: -1; 
+        }
     </style>
 </head>
 <body>
@@ -63,13 +59,16 @@
 
 <div class="ui-container">
     <div class="stats-grid">
-        <div class="stat-box"><div>BALANS (TMT)</div><div id="val-balance" class="stat-value">121.4017</div></div>
-        <div class="stat-box"><div>AÝLYK</div><div class="stat-value">+50.00</div></div>
-        <div class="stat-box"><div>GÜNLÜK</div><div class="stat-value">+1.66</div></div>
-        <div class="stat-box"><div>SAGATLYK</div><div class="stat-value">+0.069</div></div>
+        <div class="stat-box"><div class="stat-label">BALANS (TMT)</div><div id="val-balance" class="stat-value">121.4020</div></div>
+        <div class="stat-box"><div class="stat-label">AÝLYK</div><div class="stat-value">+50.00</div></div>
+        <div class="stat-box"><div class="stat-label">GÜNLÜK</div><div class="stat-value">+1.66</div></div>
+        <div class="stat-box"><div class="stat-label">SAGATLYK</div><div class="stat-value">+0.069</div></div>
     </div>
-    <button class="btn" style="background: #f39c12; color: #000;" onclick="refill()">⛽ ZAPRAWKA ET (0.20 TMT)</button>
-    <button class="btn" style="background: #34495e; color: white;">🛒 MAGAZIN / BAZAR</button>
+    
+    <div class="fuel-bar"><div id="fuel-fill"></div></div>
+
+    <button class="btn btn-zap" onclick="refill()">⛽ ZAPRAWKA ET (0.20 TMT)</button>
+    <button class="btn btn-shop">🛒 MAGAZIN / BAZAR</button>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -77,36 +76,58 @@
     var map = L.map('map', { zoomControl: false, attributionControl: false }).setView([37.942, 58.385], 17);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // MAŞYN MARKERI - ÝOKARDAN GÖRNÜŞLI 3D TAXI
-    var taxiIcon = L.divIcon({
+    // ŽIGULI 07 MARKERI
+    var zigulyIcon = L.divIcon({
         html: `
-            <div id="car-rotate-wrap" style="transition: transform 0.5s linear;">
+            <div id="car-wrap" class="car-rotate-wrapper">
                 <div class="car-shadow"></div>
-                <img class="car-img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSIzMCI+PHJlY3QgeD0iMiIgeT0iNSIgd2lkdGg9IjQ2IiBoZWlnaHQ9IjIwIiByeD0iNSIgZmlsbD0iI2YxYzQwZiIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjIiLz48cmVjdCB4PSIxNSIgeT0iOCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjE0IiByeD0iMyIgZmlsbD0iIzMzMyIvPjxyZWN0IHg9IjIyIiB5PSIzIiB3aWR0aD0iNiIgaGVpZ2h0PSIzIiByeD0iMSIgZmlsbD0iIzAwMCIvPjwvc3ZnPg==">
+                <img src="https://i.imgur.com/39A06Yt.png" style="width: 55px; transform: rotate(0deg);">
             </div>`,
-        className: 'custom-car',
+        className: 'custom-marker',
         iconSize: [60, 60],
         iconAnchor: [30, 30]
     });
 
     const routes = [[37.9422, 58.3852], [37.9445, 58.3852], [37.9445, 58.3900], [37.9422, 58.3900]];
     let routeIdx = 0;
-    var marker = L.marker(routes[0], { icon: taxiIcon, zIndexOffset: 2000 }).addTo(map);
+    var marker = L.marker(routes[0], { icon: zigulyIcon, zIndexOffset: 2000 }).addTo(map);
 
-    function getAngle(p1, p2) { return Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI; }
+    let state = { balance: 121.4020, fuel: 100 };
+
+    function getAngle(p1, p2) {
+        return Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
+    }
 
     setInterval(() => {
-        let currentPos = routes[routeIdx];
-        routeIdx = (routeIdx + 1) % routes.length;
-        let nextPos = routes[routeIdx];
+        if(state.fuel > 0) {
+            let currentPos = routes[routeIdx];
+            routeIdx = (routeIdx + 1) % routes.length;
+            let nextPos = routes[routeIdx];
 
-        let angle = getAngle(currentPos, nextPos);
-        let carWrap = document.getElementById('car-rotate-wrap');
-        if(carWrap) carWrap.style.transform = `rotate(${angle}deg)`;
+            // Žigulini öwür (07-leriň öwrülişi ýaly dikräk)
+            let angle = getAngle(currentPos, nextPos);
+            let carWrap = document.getElementById('car-wrap');
+            if(carWrap) carWrap.style.transform = `rotate(${angle}deg)`;
 
-        marker.setLatLng(nextPos);
-        map.panTo(nextPos, { animate: true, duration: 2 });
+            marker.setLatLng(nextPos);
+            map.panTo(nextPos, { animate: true, duration: 2 });
+
+            // Gazanç we Benzin
+            state.balance += 0.0001;
+            state.fuel -= 0.5;
+            document.getElementById('val-balance').innerText = state.balance.toFixed(4);
+            document.getElementById('fuel-fill').style.width = state.fuel + "%";
+        }
     }, 3000);
+
+    function refill() {
+        if(state.balance >= 0.20) {
+            state.balance -= 0.20;
+            state.fuel = 100;
+            document.getElementById('val-balance').innerText = state.balance.toFixed(4);
+            document.getElementById('fuel-fill').style.width = "100%";
+        }
+    }
 </script>
 </body>
 </html>
