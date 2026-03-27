@@ -3,35 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Aman Taxi - Final</title>
+    <title>Aman Taxi 3D Pro</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body { margin: 0; background: #121212; color: white; font-family: sans-serif; overflow: hidden; }
-        #map { height: 45vh; width: 100%; position: absolute; top: 0; }
-        .ui-container { 
-            position: fixed; bottom: 0; width: 100%; height: 55vh; 
-            background: #1a1a1a; border-top: 4px solid #f39c12; 
-            padding: 20px; box-sizing: border-box; border-radius: 25px 25px 0 0;
-            z-index: 1000;
+        body { margin: 0; background: #121212; overflow: hidden; font-family: sans-serif; }
+        
+        /* KARTANY 3D ÝAPGYT GÖRKEZMEK ÜÇIN HILE */
+        #map-holder {
+            perspective: 1000px; /* 3D çuňluk berýär */
+            width: 100%; height: 50vh;
+            background: #000;
         }
+        #map { 
+            height: 120%; width: 100%; 
+            transform: rotateX(45deg); /* Kartany 45 gradus ýapgytlandyrýar */
+            margin-top: -15%;
+        }
+
+        .ui-container { 
+            position: fixed; bottom: 0; width: 100%; height: 50vh; 
+            background: #1a1a1a; border-top: 4px solid #f39c12; 
+            z-index: 2000; padding: 20px; box-sizing: border-box; 
+            border-radius: 30px 30px 0 0; box-shadow: 0 -20px 40px rgba(0,0,0,0.8);
+        }
+        
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-box { background: #222; padding: 10px; border-radius: 12px; text-align: center; border: 1px solid #333; }
-        .stat-value { font-size: 16px; font-weight: bold; color: #f39c12; }
-        .fuel-bar { background: #333; height: 25px; border-radius: 12px; position: relative; margin-bottom: 20px; overflow: hidden; border: 1px solid #444; }
+        .stat-box { background: #222; padding: 12px; border-radius: 15px; text-align: center; border: 1px solid #333; }
+        .stat-value { font-size: 17px; font-weight: bold; color: #f39c12; }
+        
+        .fuel-bar { background: #333; height: 25px; border-radius: 12px; position: relative; margin-bottom: 15px; overflow: hidden; }
         #fuel-fill { height: 100%; width: 100%; background: #27ae60; transition: 1s linear; }
-        #fuel-text { position: absolute; width: 100%; text-align: center; top: 4px; font-weight: bold; font-size: 12px; }
-        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
+        #fuel-text { position: absolute; width: 100%; text-align: center; top: 4px; font-weight: bold; font-size: 12px; color: #fff; }
+
+        /* MAŞYN VE KÖLEGE (SHADOW) */
+        .car-3d-wrapper {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s linear;
+        }
+        .car-shadow {
+            position: absolute; top: 15px; left: 5px;
+            width: 50px; height: 30px;
+            background: rgba(0,0,0,0.5); /* Dinamiki kölege */
+            filter: blur(5px); border-radius: 50%;
+            z-index: -1;
+        }
+        .btn { width: 100%; padding: 16px; border-radius: 15px; border: none; font-weight: bold; margin-bottom: 8px; font-size: 15px; }
         .btn-zap { background: #f39c12; color: #000; }
-        /* Maşynyň aýlanmagy üçin ýumşak geçiş */
-        .car-icon { transition: transform 0.5s linear; }
     </style>
 </head>
 <body>
 
-<div id="map"></div>
+<div id="map-holder">
+    <div id="map"></div>
+</div>
+
 <div class="ui-container">
     <div class="stats-grid">
-        <div class="stat-box"><div>BALANS (TMT)</div><div id="val-balance" class="stat-value">121.4012</div></div>
+        <div class="stat-box"><div>BALANS (TMT)</div><div id="val-balance" class="stat-value">121.4013</div></div>
         <div class="stat-box"><div>AÝLYK</div><div class="stat-value">+50.00</div></div>
         <div class="stat-box"><div>GÜNLÜK</div><div class="stat-value">+1.66</div></div>
         <div class="stat-box"><div>SAGATLYK</div><div class="stat-value">+0.069</div></div>
@@ -46,32 +75,29 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    var map = L.map('map', { zoomControl: false }).setView([37.942, 58.385], 16);
+    var map = L.map('map', { zoomControl: false, attributionControl: false }).setView([37.942, 58.385], 17);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // MAŞYN ICONASY (ÝOKARDAN GÖRNÜŞ)
+    // 3D GÖRNÜŞLI MAŞYN MARKER (PNG SURAT VE KÖLEGE)
     var taxiIcon = L.divIcon({
-        html: `<div id="car-img" class="car-icon">
-                <svg width="50" height="30" viewBox="0 0 50 30">
-                    <rect x="5" y="5" width="40" height="20" rx="4" fill="#f1c40f" stroke="black" stroke-width="2"/>
-                    <rect x="15" y="8" width="20" height="14" rx="2" fill="#333"/>
-                    <rect x="22" y="5" width="6" height="2" fill="black"/> 
-                </svg>
-               </div>`,
-        className: 'custom-marker',
-        iconSize: [50, 30],
-        iconAnchor: [25, 15]
+        html: `
+            <div id="car-wrap" class="car-3d-wrapper">
+                <div class="car-shadow"></div>
+                <img src="https://i.imgur.com/7pQ3X9p.png" style="width: 55px; display: block;">
+            </div>`,
+        className: 'custom-3d-car',
+        iconSize: [60, 40],
+        iconAnchor: [30, 20]
     });
 
     const routes = [
-        [37.9422, 58.3852], [37.9450, 58.3852], [37.9450, 58.3910], [37.9422, 58.3910]
+        [37.9422, 58.3852], [37.9445, 58.3852], [37.9445, 58.3900], [37.9422, 58.3900]
     ];
     let routeIdx = 0;
-    var marker = L.marker(routes[0], { icon: taxiIcon, zIndexOffset: 1000 }).addTo(map);
+    var marker = L.marker(routes[0], { icon: taxiIcon, zIndexOffset: 2000 }).addTo(map);
 
-    let state = { balance: 121.4012, fuel: 100 };
+    let state = { balance: 121.4013, fuel: 100 };
 
-    // Iki nokat arasyndaky burçy hasaplaýjy
     function getAngle(p1, p2) {
         return Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
     }
@@ -84,15 +110,14 @@
 
             // Maşyny öwür
             let angle = getAngle(currentPos, nextPos);
-            document.getElementById('car-img').style.transform = `rotate(${angle}deg)`;
+            let carWrap = document.getElementById('car-wrap');
+            if(carWrap) carWrap.style.transform = `rotate(${angle + 90}deg)`;
 
-            // Hereket et
             marker.setLatLng(nextPos);
-            map.panTo(nextPos);
+            map.panTo(nextPos, { animate: true, duration: 2 });
 
-            // Balans we Benzin
-            state.balance += 0.0001;
-            state.fuel -= 0.5;
+            state.balance += 0.0002;
+            state.fuel -= 0.4;
             
             document.getElementById('val-balance').innerText = state.balance.toFixed(4);
             document.getElementById('fuel-fill').style.width = state.fuel + "%";
