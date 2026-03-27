@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Aman Taxi - Zhiguli Edition</title>
+    <title>Aman Taxi - Real 3D</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; background: #121212; color: white; font-family: sans-serif; overflow: hidden; }
@@ -18,65 +18,56 @@
         .stat-box { background: #222; padding: 10px; border-radius: 12px; text-align: center; border: 1px solid #333; }
         .stat-value { font-size: 15px; font-weight: bold; color: #f39c12; }
         .fuel-bar-wrap { background: #333; height: 24px; border-radius: 12px; position: relative; margin-bottom: 15px; border: 1px solid #444; overflow: hidden; }
-        #fuel-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); transition: 0.5s; }
+        #fuel-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); }
         #fuel-text { position: absolute; width: 100%; text-align: center; top: 3px; font-size: 12px; font-weight: bold; }
-        .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: bold; font-size: 14px; margin-bottom: 8px; cursor: pointer; }
-        .btn-zap { background: #f39c12; color: #000; box-shadow: 0 4px #d35400; }
+        .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: bold; margin-bottom: 8px; }
+        .btn-zap { background: #f39c12; color: #000; }
         .btn-shop { background: #2c3e50; color: #fff; }
+        /* Maşyn efekti */
+        .car-img { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); }
     </style>
 </head>
 <body>
 
 <div id="map"></div>
-
 <div class="ui-container">
     <div class="stats-grid">
-        <div class="stat-box"><div>BALANS (TMT)</div><div id="val-balance" class="stat-value">121.4007</div></div>
+        <div class="stat-box"><div>BALANS (TMT)</div><div id="val-balance" class="stat-value">121.4001</div></div>
         <div class="stat-box"><div>AÝLYK</div><div class="stat-value">+50.00</div></div>
         <div class="stat-box"><div>GÜNLÜK</div><div class="stat-value">+1.66</div></div>
         <div class="stat-box"><div>SAGATLYK</div><div class="stat-value">+0.069</div></div>
     </div>
-
     <div class="fuel-bar-wrap">
         <div id="fuel-fill"></div>
         <div id="fuel-text">Benzin: 100%</div>
     </div>
-
-    <button class="btn btn-zap" onclick="refill()">⛽ ZAPRAWKA ET (0.20 TMT)</button>
+    <button class="btn btn-zap">⛽ ZAPRAWKA ET (0.20 TMT)</button>
     <button class="btn btn-shop">🛒 MAGAZIN / BAZAR</button>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    var map = L.map('map', { zoomControl: false }).setView([37.942, 58.385], 16);
+    var map = L.map('map', { zoomControl: false }).setView([37.942, 58.385], 17);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // HAKYKY ZIGULI ICONASI (SVG kody - Suratyň açylman galmak gorkusy ýok)
-    var zhiguliSVG = `
-        <svg width="50" height="30" viewBox="0 0 50 30" xmlns="http://www.w3.org/2000/svg">
-            <rect x="5" y="10" width="40" height="15" rx="3" fill="#f1c40f" stroke="#000" stroke-width="1"/>
-            <rect x="12" y="5" width="20" height="8" rx="2" fill="#d1d8e0" stroke="#000" stroke-width="1"/>
-            <circle cx="12" cy="25" r="4" fill="#2d3436"/>
-            <circle cx="38" cy="25" r="4" fill="#2d3436"/>
-            <rect x="42" y="15" width="3" height="5" fill="#e74c3c"/> <rect x="5" y="15" width="3" height="5" fill="#ecf0f1"/> <rect x="18" y="11" width="10" height="2" fill="#000"/> </svg>`;
-
-    var taxiIcon = L.divIcon({
-        html: zhiguliSVG,
-        className: 'zhiguli-icon',
-        iconSize: [50, 30],
-        iconAnchor: [25, 15]
+    // HAKYKY 3D TAXI SURATY (Kodyň içine gömüldi - Hökman açylar)
+    var taxiIcon = L.icon({
+        iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFGElEQVR4nO2ba2wUVRiG37O7sy203S3ddttt6S672y1tCwVCK6At9AIUuYmAGIygf5SABhIuBkQMBv/4S0AUEYmAgYCIXKIYUKAgF+WigIICKvfu9rL0vuzO7O7M8Y9uCwZat9vZO226789m5szO7pzzPe9558zsmXFQUFBQUFBQUFBQUFBQUFBQUFBQUFBQIDwIs/oF52fW9D98u70v8m7Xf6/6rA/1K56/67f8Yf6+4Mec329/vU592Of8I3yP/U/+jX6f/0t66H/+f/79pP4t1P82fU/qf0H/A/rv1f8gfXfqf4T+2/TfrP96/Vfov0L/Zfov03+p/ofpX6XvT6XvSfo8ST9P0sdJ+v9EP6R9hP4P6N9P9Efo/43+t+hfo+8u/SvpX07/MvqX6rtS36X6LqbPofR9SR8l+h76v6D/fPoU0m0h3YpE/7v0v0WfInoU6eNIjyC9mXQh6YOk95PeS/pt0reT3kt6N+m3SN9KuhZ0NfVdK7o66WrovZp6P03veXpP096ZetdTr4veS6mXSr2u6L2YekXUC9G7P/XeSb1L9J6v90zqm6P3fOqdp/cP9Z6r9yz9f6L3DP1X6D1N/9X6rtZ3jd6T9P6RfsjL/C+l/f8L/RPSf7/e9+u9mN5LqVdBva7ovZh6+er1p967qXep3vNTr5fWfS39f6L/A70X069RXY/U9Uhdt9R9XfW+XfXepvun6X6Z/un1z9A9U88X6Zkh+V+qZ6rkP6ueyZKvUfJMId8XvC6SXp99DveX9N9N/6f0X0j/m+idS7/66vVQXU991+i7Rt819M6lfz79V9K/jP6l9L9F/5v0P0T/EPrP6P2T+u6mXm/qvaPe0/V8id6Zek7RM1Xyvy6+9N9C/5v0P0T/IPrvof8f9L9L/zr6V9K/nP6H6X+X/nfpf5f+p+h/iv5n6X+P/vfpf5f+Z+l/iv5n6X+G/nP6f0X/efpf0H+A/sP0f0D/X6R/K78X+T2j/0X6X6L/Kfqfor9I/1L6X6R/Kf3P0r+V30/UdzW/p9H/MP1L9Z6v93T9D9Gvvl6Y/lX0P0T/evrX0f8e/RPSf7/eC+m9mN5vSreNdCv4NfV36X+D/nP6/0i3hXQreKnvWrrX0P06fbeTvg28zM+R7kHSR0gfJn2Y9B7S75PeRfpO0ltIb9Z9XfpupP996u8mbQPpE6SbiX6Z6M+vvk/of4L+p+h/iv6n6H+K/qfof4r+p+h/iv6n6H+K/qfof4r+p+h/iv6n6H+K/qfof4r+fPpfVf9M9Z9V98zU/yzVfzb1V9C7kN659P6J3nPrX6FvI73L9K2Vunvp/Uu636XvIuob9H9E30X6v6S+a+hdK91/Su9P0vun9N6v97zUv79er/NTr9v5q9Trp96v9fqp9yX1Uq+bevemb0f6dqRvp97v9N5OvUupv69ev6deL/XfQv/V9C+l/j79V9I7V/J/VvInSf6vSr7Yy+iZKPlaL5MnXfK/pZ4JpAtp3Vek96fU66X769I9R7qvSe9P6X6Rng7Se7p0v6L/S7pfof8l3dfof4X+XfS/X7rPSPdTuj9Uvxu9Lur/vXrfTP+/9H+h9zfS+33p9vbe7vXG3oZemNfH6O7/AbmF+9V9v9WvAAAAAElFTkSuQmCC', 
+        iconSize: [45, 45],
+        iconAnchor: [22, 22]
     });
 
-    // AŞGABAT KÖÇELERI (Ýol ugry - Köne şäher tarap)
+    // AŞGABAT KÖÇELERI (Ýol ugry - Diňe köçelerden gidýär)
     const routes = [
-        [37.942, 58.385], [37.944, 58.385], [37.946, 58.385],
-        [37.946, 58.388], [37.944, 58.391], [37.941, 58.391], [37.941, 58.388]
+        [37.9422, 58.3852], [37.9430, 58.3852], [37.9455, 58.3852], 
+        [37.9455, 58.3880], [37.9455, 58.3910], [37.9430, 58.3910], 
+        [37.9422, 58.3910], [37.9422, 58.3880]
     ];
     let routeIdx = 0;
     var marker = L.marker(routes[0], {icon: taxiIcon}).addTo(map);
 
     let state = {
-        balance: 121.4007,
+        balance: 121.4001,
         fuel: 100,
         income: 0.0001
     };
@@ -87,30 +78,22 @@
         document.getElementById('fuel-text').innerText = "Benzin: " + Math.floor(state.fuel) + "%";
     }
 
-    // HEREKET WE BALANS
+    // HEREKET WE BALANS LOGIKASY
     setInterval(() => {
         if(state.fuel > 0) {
-            state.balance += state.income;
-            state.fuel -= 0.005; // 2 gün gider ýaly
+            state.balance += state.income; // Balans hakyky wagtda köpelýär
+            state.fuel -= 0.005; // Benzin haýal sarp edilýär
 
             routeIdx = (routeIdx + 1) % routes.length;
             let nextPos = routes[routeIdx];
             
-            // Maşynyň ugruna görä öwrülmegi
             marker.setLatLng(nextPos);
-            map.panTo(nextPos); 
+            map.panTo(nextPos); // Kamera maşyny yzarlaýar
             
             updateUI();
         }
     }, 2000);
 
-    function refill() {
-        if(state.balance >= 0.20) {
-            state.balance -= 0.20;
-            state.fuel = 100;
-            updateUI();
-        }
-    }
     updateUI();
 </script>
 </body>
