@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Aman Taxi 3D Pro</title>
+    <title>Aman Taxi Real 3D</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body { margin: 0; background: #121212; overflow: hidden; font-family: sans-serif; }
         
-        /* KARTANY 3D ÝAPGYT GÖRKEZMEK ÜÇIN HILE */
+        /* KARTANY 3D ÝAPGYT GÖRKEZMEK */
         #map-holder {
-            perspective: 1000px; /* 3D çuňluk berýär */
+            perspective: 800px;
             width: 100%; height: 50vh;
             background: #000;
         }
         #map { 
-            height: 120%; width: 100%; 
-            transform: rotateX(45deg); /* Kartany 45 gradus ýapgytlandyrýar */
-            margin-top: -15%;
+            height: 140%; width: 100%; 
+            transform: rotateX(45deg); 
+            margin-top: -20%;
         }
 
         .ui-container { 
@@ -26,30 +26,33 @@
             z-index: 2000; padding: 20px; box-sizing: border-box; 
             border-radius: 30px 30px 0 0; box-shadow: 0 -20px 40px rgba(0,0,0,0.8);
         }
-        
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-box { background: #222; padding: 12px; border-radius: 15px; text-align: center; border: 1px solid #333; }
-        .stat-value { font-size: 17px; font-weight: bold; color: #f39c12; }
-        
-        .fuel-bar { background: #333; height: 25px; border-radius: 12px; position: relative; margin-bottom: 15px; overflow: hidden; }
-        #fuel-fill { height: 100%; width: 100%; background: #27ae60; transition: 1s linear; }
-        #fuel-text { position: absolute; width: 100%; text-align: center; top: 4px; font-weight: bold; font-size: 12px; color: #fff; }
 
-        /* MAŞYN VE KÖLEGE (SHADOW) */
-        .car-3d-wrapper {
+        /* MAŞYN KONTEÝNERI */
+        .car-container {
             position: relative;
+            width: 60px; height: 60px;
             transform-style: preserve-3d;
-            transition: transform 0.5s linear;
         }
+
+        /* HAKYKY ÝALY KÖLEGE (SHADOW) */
         .car-shadow {
-            position: absolute; top: 15px; left: 5px;
-            width: 50px; height: 30px;
-            background: rgba(0,0,0,0.5); /* Dinamiki kölege */
-            filter: blur(5px); border-radius: 50%;
+            position: absolute; top: 20px; left: 10px;
+            width: 40px; height: 20px;
+            background: rgba(0,0,0,0.6);
+            filter: blur(6px); border-radius: 50%;
             z-index: -1;
         }
-        .btn { width: 100%; padding: 16px; border-radius: 15px; border: none; font-weight: bold; margin-bottom: 8px; font-size: 15px; }
-        .btn-zap { background: #f39c12; color: #000; }
+
+        /* MAŞYNYŇ SURATY */
+        .car-img {
+            width: 55px; 
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-box { background: #222; padding: 10px; border-radius: 12px; text-align: center; border: 1px solid #333; }
+        .stat-value { font-size: 16px; font-weight: bold; color: #f39c12; }
+        .btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; margin-bottom: 8px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -60,16 +63,12 @@
 
 <div class="ui-container">
     <div class="stats-grid">
-        <div class="stat-box"><div>BALANS (TMT)</div><div id="val-balance" class="stat-value">121.4013</div></div>
+        <div class="stat-box"><div>BALANS (TMT)</div><div id="val-balance" class="stat-value">121.4017</div></div>
         <div class="stat-box"><div>AÝLYK</div><div class="stat-value">+50.00</div></div>
         <div class="stat-box"><div>GÜNLÜK</div><div class="stat-value">+1.66</div></div>
         <div class="stat-box"><div>SAGATLYK</div><div class="stat-value">+0.069</div></div>
     </div>
-    <div class="fuel-bar">
-        <div id="fuel-fill"></div>
-        <div id="fuel-text">Benzin: 100%</div>
-    </div>
-    <button class="btn btn-zap" onclick="refill()">⛽ ZAPRAWKA ET (0.20 TMT)</button>
+    <button class="btn" style="background: #f39c12; color: #000;" onclick="refill()">⛽ ZAPRAWKA ET (0.20 TMT)</button>
     <button class="btn" style="background: #34495e; color: white;">🛒 MAGAZIN / BAZAR</button>
 </div>
 
@@ -78,59 +77,36 @@
     var map = L.map('map', { zoomControl: false, attributionControl: false }).setView([37.942, 58.385], 17);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // 3D GÖRNÜŞLI MAŞYN MARKER (PNG SURAT VE KÖLEGE)
+    // MAŞYN MARKERI - ÝOKARDAN GÖRNÜŞLI 3D TAXI
     var taxiIcon = L.divIcon({
         html: `
-            <div id="car-wrap" class="car-3d-wrapper">
+            <div id="car-rotate-wrap" style="transition: transform 0.5s linear;">
                 <div class="car-shadow"></div>
-                <img src="https://i.imgur.com/7pQ3X9p.png" style="width: 55px; display: block;">
+                <img class="car-img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSIzMCI+PHJlY3QgeD0iMiIgeT0iNSIgd2lkdGg9IjQ2IiBoZWlnaHQ9IjIwIiByeD0iNSIgZmlsbD0iI2YxYzQwZiIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjIiLz48cmVjdCB4PSIxNSIgeT0iOCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjE0IiByeD0iMyIgZmlsbD0iIzMzMyIvPjxyZWN0IHg9IjIyIiB5PSIzIiB3aWR0aD0iNiIgaGVpZ2h0PSIzIiByeD0iMSIgZmlsbD0iIzAwMCIvPjwvc3ZnPg==">
             </div>`,
-        className: 'custom-3d-car',
-        iconSize: [60, 40],
-        iconAnchor: [30, 20]
+        className: 'custom-car',
+        iconSize: [60, 60],
+        iconAnchor: [30, 30]
     });
 
-    const routes = [
-        [37.9422, 58.3852], [37.9445, 58.3852], [37.9445, 58.3900], [37.9422, 58.3900]
-    ];
+    const routes = [[37.9422, 58.3852], [37.9445, 58.3852], [37.9445, 58.3900], [37.9422, 58.3900]];
     let routeIdx = 0;
     var marker = L.marker(routes[0], { icon: taxiIcon, zIndexOffset: 2000 }).addTo(map);
 
-    let state = { balance: 121.4013, fuel: 100 };
-
-    function getAngle(p1, p2) {
-        return Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
-    }
+    function getAngle(p1, p2) { return Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI; }
 
     setInterval(() => {
-        if(state.fuel > 0) {
-            let currentPos = routes[routeIdx];
-            routeIdx = (routeIdx + 1) % routes.length;
-            let nextPos = routes[routeIdx];
+        let currentPos = routes[routeIdx];
+        routeIdx = (routeIdx + 1) % routes.length;
+        let nextPos = routes[routeIdx];
 
-            // Maşyny öwür
-            let angle = getAngle(currentPos, nextPos);
-            let carWrap = document.getElementById('car-wrap');
-            if(carWrap) carWrap.style.transform = `rotate(${angle + 90}deg)`;
+        let angle = getAngle(currentPos, nextPos);
+        let carWrap = document.getElementById('car-rotate-wrap');
+        if(carWrap) carWrap.style.transform = `rotate(${angle}deg)`;
 
-            marker.setLatLng(nextPos);
-            map.panTo(nextPos, { animate: true, duration: 2 });
-
-            state.balance += 0.0002;
-            state.fuel -= 0.4;
-            
-            document.getElementById('val-balance').innerText = state.balance.toFixed(4);
-            document.getElementById('fuel-fill').style.width = state.fuel + "%";
-            document.getElementById('fuel-text').innerText = "Benzin: " + Math.floor(state.fuel) + "%";
-        }
+        marker.setLatLng(nextPos);
+        map.panTo(nextPos, { animate: true, duration: 2 });
     }, 3000);
-
-    function refill() {
-        if(state.balance >= 0.20) {
-            state.balance -= 0.20;
-            state.fuel = 100;
-        }
-    }
 </script>
 </body>
 </html>
